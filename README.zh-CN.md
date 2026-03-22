@@ -221,6 +221,27 @@ openclaw skills list | grep clawteam
 详细验证记录见：
 - [`docs/openclaw-validation.md`](./docs/openclaw-validation.md)
 
+## Web UI 默认行为
+
+当前 Web UI 已按 OpenClaw 实战使用习惯调整为：
+
+- 默认监听：`0.0.0.0`
+- 默认端口：`8090`
+- 默认界面语言：**简体中文**
+- 默认定位：局域网可访问的 ClawTeam 指挥中心
+
+启动命令：
+
+```bash
+clawteam board serve
+```
+
+局域网设备可通过如下地址访问：
+
+```text
+http://<你的内网IP>:8090
+```
+
 ---
 
 ## 核心特性
