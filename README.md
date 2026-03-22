@@ -1,6 +1,10 @@
 <h1 align="center">🦞ClawTeam-OpenClaw</h1>
 
 <p align="center">
+  <a href="./README.md">English</a> | <a href="./README.zh-CN.md">简体中文</a>
+</p>
+
+<p align="center">
   <strong>Multi-agent swarm coordination for CLI coding agents — <a href="https://openclaw.ai">OpenClaw</a> as default</strong>
 </p>
 
