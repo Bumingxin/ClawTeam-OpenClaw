@@ -271,6 +271,26 @@ This fork has been validated in a live OpenClaw environment for the following wo
 
 A detailed developer-oriented validation log is available at [`docs/openclaw-validation.md`](docs/openclaw-validation.md).
 
+### Web UI defaults
+
+The dashboard Web UI now defaults to a **LAN-accessible** configuration for OpenClaw-first usage:
+
+- Default host: `0.0.0.0`
+- Default port: `8090`
+- Current UI language: **Simplified Chinese**
+
+Start it with:
+
+```bash
+clawteam board serve
+```
+
+Then open it from another device on the same LAN using:
+
+```text
+http://<your-lan-ip>:8090
+```
+
 ---
 
 ## Use Cases

@@ -3,38 +3,99 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ClawTeam 看板</title>
+<title>ClawTeam 指挥中心</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
   :root {
-    --bg: #000000;
-    --surface: #0a0a0a;
-    --surface2: #111111;
-    --surface3: #1a1a1a;
-    --border: rgba(255,255,255,0.08);
-    --border-hover: rgba(255,255,255,0.15);
-    --text: #f5f5f7;
-    --text-secondary: #86868b;
-    --text-tertiary: #6e6e73;
-    --accent: #ffffff;
-    --green: #30d158;
-    --orange: #ff9f0a;
-    --red: #ff453a;
-    --blue: #0a84ff;
-    --purple: #bf5af2;
-    --radius: 12px;
-    --radius-sm: 8px;
+    --bg: #030913;
+    --bg2: #06111f;
+    --bg3: #081b31;
+    --surface: rgba(8, 22, 39, 0.92);
+    --surface2: rgba(10, 28, 48, 0.88);
+    --surface3: rgba(14, 37, 63, 0.9);
+    --panel: linear-gradient(180deg, rgba(10,26,45,0.95), rgba(5,15,28,0.96));
+    --panel2: linear-gradient(180deg, rgba(13,34,57,0.95), rgba(6,18,34,0.98));
+    --border: rgba(96, 176, 255, 0.16);
+    --border-strong: rgba(96, 176, 255, 0.36);
+    --grid: rgba(84, 168, 255, 0.045);
+    --glow: rgba(62, 135, 255, 0.18);
+    --glow-strong: rgba(55, 145, 255, 0.28);
+    --text: #eef7ff;
+    --text-secondary: #a6c0dc;
+    --text-tertiary: #7291ad;
+    --blue: #59a9ff;
+    --cyan: #58d5ff;
+    --green: #30d48b;
+    --orange: #ffb24f;
+    --red: #ff5d74;
+    --purple: #8f7dff;
+    --yellow: #ffd84d;
+    --radius: 18px;
+    --radius-sm: 12px;
+    --shadow: 0 0 0 1px rgba(89,169,255,0.08), 0 18px 40px rgba(0,0,0,0.32);
+    --shadow-strong: 0 0 0 1px rgba(89,169,255,0.16), 0 24px 50px rgba(0,0,0,0.44), 0 0 24px rgba(45,118,255,0.12);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; }
 
   body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: var(--bg);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     color: var(--text);
-    min-height: 100vh;
+    background:
+      radial-gradient(circle at top left, rgba(56,128,255,0.18), transparent 24%),
+      radial-gradient(circle at 78% 6%, rgba(88,213,255,0.12), transparent 20%),
+      radial-gradient(circle at bottom right, rgba(52,115,255,0.10), transparent 24%),
+      linear-gradient(180deg, var(--bg3) 0%, var(--bg2) 38%, var(--bg) 100%);
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 34px 34px;
+    mask-image: linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.12) 68%, transparent 100%);
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent 22%);
+    mix-blend-mode: screen;
+    opacity: 0.45;
+  }
+
+  @keyframes pulseGlow {
+    0% { box-shadow: 0 0 0 0 rgba(48,212,139,0.30), 0 0 12px rgba(48,212,139,0.28); }
+    50% { box-shadow: 0 0 0 6px rgba(48,212,139,0.02), 0 0 18px rgba(48,212,139,0.42); }
+    100% { box-shadow: 0 0 0 0 rgba(48,212,139,0.02), 0 0 12px rgba(48,212,139,0.28); }
+  }
+
+  @keyframes pulseRed {
+    0% { box-shadow: 0 0 0 0 rgba(255,93,116,0.22), 0 0 14px rgba(255,93,116,0.20); }
+    50% { box-shadow: 0 0 0 7px rgba(255,93,116,0.02), 0 0 22px rgba(255,93,116,0.34); }
+    100% { box-shadow: 0 0 0 0 rgba(255,93,116,0.02), 0 0 14px rgba(255,93,116,0.20); }
+  }
+
+  @keyframes breatheCard {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-1px); }
+    100% { transform: translateY(0); }
+  }
+
+  @keyframes dataBlink {
+    0% { opacity: 0.85; }
+    50% { opacity: 1; }
+    100% { opacity: 0.85; }
   }
 </style>
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -47,276 +108,223 @@
 const { useState, useEffect, useRef, useMemo } = React;
 
 const S = {
-  nav: {
+  shell: { maxWidth: 1600, margin: '0 auto', padding: '24px 24px 34px' },
+  topbar: {
     position: 'sticky', top: 0, zIndex: 100,
-    background: 'rgba(0,0,0,0.72)',
-    backdropFilter: 'saturate(180%) blur(20px)',
-    WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-    borderBottom: '1px solid var(--border)',
-    padding: '0 32px', height: 52,
-    display: 'flex', alignItems: 'center', gap: 16,
+    background: 'rgba(4, 11, 21, 0.76)',
+    backdropFilter: 'blur(18px) saturate(160%)',
+    WebkitBackdropFilter: 'blur(18px) saturate(160%)',
+    borderBottom: '1px solid rgba(89,169,255,0.12)',
+    boxShadow: '0 10px 26px rgba(0,0,0,0.24)'
   },
-  navTitle: {
-    fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em',
-    color: 'var(--text)',
+  topInner: {
+    maxWidth: 1600, margin: '0 auto', padding: '16px 24px',
+    display: 'grid', gridTemplateColumns: '360px 1fr 430px', gap: 18, alignItems: 'center'
   },
-  select: {
-    background: 'var(--surface2)', color: 'var(--text)',
-    border: '1px solid var(--border)', borderRadius: 8,
-    padding: '6px 12px', fontSize: 13, outline: 'none',
-    cursor: 'pointer',
+  brandWrap: { display: 'flex', flexDirection: 'column', gap: 4, position: 'relative', paddingLeft: 14 },
+  brandBar: {
+    position: 'absolute', left: 0, top: 4, bottom: 4, width: 3,
+    borderRadius: 999, background: 'linear-gradient(180deg, var(--cyan), var(--blue))',
+    boxShadow: '0 0 12px rgba(88,213,255,0.35)'
   },
-  statusDot: (connected) => ({
-    width: 8, height: 8, borderRadius: '50%', marginLeft: 'auto',
+  brandTitle: { fontSize: 20, fontWeight: 800, letterSpacing: '0.04em' },
+  brandSub: { fontSize: 12, color: 'var(--text-tertiary)', letterSpacing: '0.08em', textTransform: 'uppercase' },
+  teamSwitcher: {
+    width: '100%', background: 'linear-gradient(180deg, rgba(13,31,54,0.92), rgba(9,23,40,0.95))',
+    color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 14,
+    padding: '13px 14px', fontSize: 14, outline: 'none', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.02)'
+  },
+  statusPanel: {
+    display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'center',
+    background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 16,
+    padding: '12px 14px', boxShadow: 'var(--shadow)'
+  },
+  statusMeta: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 },
+  statusBlock: { display: 'flex', flexDirection: 'column', gap: 4 },
+  statusTitle: { fontSize: 11, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em' },
+  statusValue: { fontSize: 13, fontWeight: 700, color: 'var(--text)' },
+  statusDot: connected => ({
+    width: 10, height: 10, borderRadius: '50%',
     background: connected ? 'var(--green)' : 'var(--red)',
-    boxShadow: connected ? '0 0 8px var(--green)' : 'none',
+    animation: connected ? 'pulseGlow 2.2s infinite' : 'pulseRed 2.2s infinite'
   }),
-  statusText: {
-    fontSize: 12, color: 'var(--text-tertiary)', marginLeft: 6,
-  },
-  container: {
-    maxWidth: 1200, margin: '0 auto', padding: '24px 32px',
-  },
-  summaryGrid: {
-    display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: 12, marginBottom: 24,
-  },
-  summaryCard: {
-    background: 'var(--surface)',
-    border: '1px solid var(--border)',
-    borderRadius: 'var(--radius)',
-    padding: '20px 16px', textAlign: 'center',
-    transition: 'border-color 0.2s',
-  },
-  summaryNum: (color) => ({
-    fontSize: 32, fontWeight: 700, letterSpacing: '-0.02em',
-    color: color, lineHeight: 1,
+  summaryGrid: { display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 14, marginTop: 22, marginBottom: 22 },
+  summaryCard: color => ({
+    background: 'var(--panel2)', border: `1px solid ${color}33`, borderRadius: 18,
+    padding: '18px 18px', minHeight: 132, boxShadow: `0 0 0 1px ${color}12 inset, 0 16px 34px rgba(0,0,0,0.26), 0 0 20px ${color}10`,
+    position: 'relative', overflow: 'hidden', animation: 'breatheCard 6s ease-in-out infinite'
   }),
-  summaryLabel: {
-    fontSize: 11, fontWeight: 500, color: 'var(--text-tertiary)',
-    textTransform: 'uppercase', letterSpacing: '0.06em',
-    marginTop: 6,
-  },
-  section: {
-    background: 'var(--surface)',
-    border: '1px solid var(--border)',
-    borderRadius: 'var(--radius)',
-    marginBottom: 20, overflow: 'hidden',
-  },
-  sectionHeader: {
-    padding: '14px 20px',
-    borderBottom: '1px solid var(--border)',
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-  },
-  sectionTitle: {
-    fontSize: 13, fontWeight: 600, color: 'var(--text)',
-    letterSpacing: '-0.01em',
-  },
-  sectionBadge: {
-    fontSize: 11, fontWeight: 500, color: 'var(--text-tertiary)',
-    background: 'var(--surface3)', borderRadius: 10,
-    padding: '2px 8px',
-  },
-  membersGrid: {
-    display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-    gap: 1, background: 'var(--border)',
-  },
+  summaryGlow: color => ({ position: 'absolute', top: -26, right: -16, width: 92, height: 92, borderRadius: '50%', background: `${color}22`, filter: 'blur(16px)' }),
+  summaryAccent: color => ({ position: 'absolute', left: 0, top: 0, width: '100%', height: 2, background: `linear-gradient(90deg, transparent, ${color}, transparent)`, opacity: 0.75 }),
+  summaryLabel: { fontSize: 11, color: 'var(--text-tertiary)', letterSpacing: '0.10em', textTransform: 'uppercase' },
+  summaryValue: color => ({ fontSize: 40, fontWeight: 800, color, marginTop: 12, lineHeight: 1, letterSpacing: '-0.04em' }),
+  summaryFoot: { marginTop: 12, fontSize: 12, color: 'var(--text-secondary)' },
+  section: { background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 18, boxShadow: 'var(--shadow-strong)', overflow: 'hidden', position: 'relative' },
+  sectionCorner: { position: 'absolute', top: 0, right: 0, width: 68, height: 68, background: 'radial-gradient(circle at top right, rgba(88,213,255,0.18), transparent 60%)', pointerEvents: 'none' },
+  sectionHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', borderBottom: '1px solid rgba(89,169,255,0.10)', background: 'linear-gradient(180deg, rgba(255,255,255,0.03), transparent)' },
+  sectionTitle: { fontSize: 14, fontWeight: 800, letterSpacing: '0.03em' },
+  sectionSub: { fontSize: 12, color: 'var(--text-tertiary)' },
+  cockpit: { display: 'grid', gridTemplateColumns: '320px minmax(0, 1fr) 390px', gap: 16, alignItems: 'start' },
+  membersWrap: { padding: 14 },
   memberCard: {
-    background: 'var(--surface)', padding: '14px 20px',
+    background: 'linear-gradient(180deg, rgba(12,30,52,0.78), rgba(8,19,34,0.88))',
+    border: '1px solid rgba(89,169,255,0.12)', borderRadius: 14, padding: '14px', marginBottom: 10,
+    boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.02)'
   },
-  memberName: {
-    fontSize: 14, fontWeight: 600, color: 'var(--text)',
+  memberLeaderCard: {
+    boxShadow: '0 0 0 1px rgba(88,213,255,0.16), 0 0 18px rgba(88,213,255,0.12), inset 0 0 0 1px rgba(255,255,255,0.03)'
   },
-  memberType: {
-    fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2,
-  },
-  inboxBadge: (count) => ({
-    display: 'inline-block', marginTop: 6,
-    fontSize: 11, fontWeight: 500,
-    padding: '2px 8px', borderRadius: 10,
-    background: count > 0 ? 'rgba(255,69,58,0.15)' : 'var(--surface3)',
+  memberTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  memberName: { fontSize: 14, fontWeight: 700 },
+  memberType: { fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 },
+  memberBadge: type => ({
+    fontSize: 11, padding: '4px 8px', borderRadius: 999,
+    color: type === 'leader' ? 'var(--cyan)' : 'var(--text-secondary)',
+    background: type === 'leader' ? 'rgba(88,213,255,0.10)' : 'rgba(89,169,255,0.08)',
+    border: '1px solid rgba(89,169,255,0.16)', fontWeight: 600
+  }),
+  inboxPill: count => ({
+    display: 'inline-block', marginTop: 10, fontSize: 11, padding: '4px 8px', borderRadius: 999,
     color: count > 0 ? 'var(--red)' : 'var(--text-tertiary)',
+    background: count > 0 ? 'rgba(255,93,116,0.10)' : 'rgba(255,255,255,0.04)',
+    border: count > 0 ? '1px solid rgba(255,93,116,0.16)' : '1px solid rgba(255,255,255,0.06)'
   }),
-  msgList: {
-    maxHeight: 360, overflowY: 'auto',
+  boardWrap: { padding: 14 },
+  kanban: { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 12 },
+  col: {
+    background: 'linear-gradient(180deg, rgba(5,14,25,0.72), rgba(7,15,27,0.82))',
+    border: '1px solid rgba(89,169,255,0.10)', borderRadius: 16, overflow: 'hidden', minHeight: 430,
+    boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.02)'
   },
-  msgItem: {
-    padding: '12px 20px',
-    borderBottom: '1px solid var(--border)',
-    transition: 'background 0.15s',
-  },
-  msgMeta: {
-    display: 'flex', alignItems: 'center', gap: 8,
-    fontSize: 12, marginBottom: 4,
-  },
-  msgTag: {
-    fontSize: 10, fontWeight: 600, textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-    padding: '2px 6px', borderRadius: 4,
-    background: 'var(--surface3)', color: 'var(--text-tertiary)',
-  },
-  msgFrom: { color: 'var(--text)', fontWeight: 500 },
-  msgTo: { color: 'var(--text-tertiary)' },
-  msgTime: { color: 'var(--text-tertiary)', marginLeft: 'auto', fontSize: 11 },
-  msgContent: {
-    fontSize: 13, color: 'var(--text-secondary)',
-    lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-  },
-  msgEmpty: {
-    padding: 32, textAlign: 'center',
-    fontSize: 13, color: 'var(--text-tertiary)',
-  },
-  kanban: {
-    display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: 12,
-  },
-  kanbanCol: {
-    background: 'var(--surface)',
-    border: '1px solid var(--border)',
-    borderRadius: 'var(--radius)',
-    minHeight: 200, overflow: 'hidden',
-  },
-  kanbanHeader: (color) => ({
-    padding: '12px 16px',
-    borderBottom: `2px solid ${color}`,
-    fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
-    letterSpacing: '0.06em', color: color,
-    display: 'flex', justifyContent: 'space-between',
-  }),
-  kanbanBody: { padding: 8 },
+  colHead: color => ({ padding: '14px', borderBottom: `2px solid ${color}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'linear-gradient(180deg, rgba(255,255,255,0.03), transparent)' }),
+  colTitle: color => ({ fontSize: 11, fontWeight: 800, color, letterSpacing: '0.12em', textTransform: 'uppercase' }),
+  colCount: { fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 },
+  colBody: { padding: 10 },
   taskCard: {
-    background: 'var(--surface2)',
-    border: '1px solid var(--border)',
-    borderRadius: 'var(--radius-sm)',
-    padding: '10px 12px', marginBottom: 6,
-    transition: 'border-color 0.15s',
-    cursor: 'default',
+    background: 'linear-gradient(180deg, rgba(13,33,56,0.88), rgba(8,18,32,0.94))',
+    border: '1px solid rgba(89,169,255,0.10)', borderRadius: 12, padding: '12px', marginBottom: 10,
+    boxShadow: '0 8px 18px rgba(0,0,0,0.18), inset 0 0 0 1px rgba(255,255,255,0.02)'
   },
-  taskId: {
-    fontSize: 11, fontFamily: 'SF Mono, Menlo, monospace',
-    color: 'var(--text-tertiary)',
+  blockedTaskCard: {
+    border: '1px solid rgba(255,93,116,0.28)',
+    boxShadow: '0 0 0 1px rgba(255,93,116,0.08), 0 0 18px rgba(255,93,116,0.10), inset 0 0 0 1px rgba(255,255,255,0.02)'
   },
-  taskSubject: {
-    fontSize: 13, fontWeight: 500, color: 'var(--text)',
-    marginTop: 2, lineHeight: 1.4,
+  activeTaskCard: {
+    border: '1px solid rgba(89,169,255,0.22)',
+    boxShadow: '0 0 0 1px rgba(89,169,255,0.08), 0 0 18px rgba(89,169,255,0.10), inset 0 0 0 1px rgba(255,255,255,0.02)'
   },
-  taskOwner: {
-    fontSize: 11, color: 'var(--text-tertiary)', marginTop: 4,
+  taskId: { fontSize: 11, color: 'var(--text-tertiary)', fontFamily: 'SF Mono, Menlo, monospace' },
+  taskSubject: { fontSize: 13, fontWeight: 700, lineHeight: 1.5, marginTop: 4 },
+  taskOwner: { fontSize: 12, color: 'var(--text-secondary)', marginTop: 8 },
+  taskBlocked: { fontSize: 11, color: 'var(--red)', marginTop: 4, animation: 'dataBlink 1.8s infinite' },
+  empty: { padding: '36px 12px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 12 },
+  messagesWrap: { padding: 10, maxHeight: 680, overflowY: 'auto' },
+  msgCard: {
+    background: 'linear-gradient(180deg, rgba(12,31,52,0.78), rgba(8,19,34,0.90))',
+    border: '1px solid rgba(89,169,255,0.10)', borderRadius: 12, padding: '12px', marginBottom: 10,
+    boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.02)'
   },
-  taskBlocked: {
-    fontSize: 11, color: 'var(--red)', marginTop: 2,
-  },
-  emptyCol: {
-    padding: 24, textAlign: 'center',
-    fontSize: 12, color: 'var(--text-tertiary)',
-  },
-  teamInfo: {
-    display: 'flex', alignItems: 'baseline', gap: 16,
-    marginBottom: 20,
-  },
-  teamName: {
-    fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em',
-    color: 'var(--text)',
-  },
-  teamMeta: {
-    fontSize: 13, color: 'var(--text-tertiary)',
-  },
+  msgImportant: { border: '1px solid rgba(255,216,77,0.22)', boxShadow: '0 0 0 1px rgba(255,216,77,0.06), 0 0 18px rgba(255,216,77,0.08)' },
+  msgDanger: { border: '1px solid rgba(255,93,116,0.24)', boxShadow: '0 0 0 1px rgba(255,93,116,0.08), 0 0 18px rgba(255,93,116,0.10)' },
+  msgMeta: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, fontSize: 11, color: 'var(--text-tertiary)' },
+  msgType: color => ({ padding: '3px 6px', borderRadius: 8, background: `${color}18`, border: `1px solid ${color}22`, color }),
+  msgBody: { fontSize: 12.5, lineHeight: 1.58, color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
+  heroEmpty: { maxWidth: 1600, margin: '0 auto', padding: '140px 24px', textAlign: 'center' },
+  heroTitle: { fontSize: 56, fontWeight: 800, letterSpacing: '-0.05em' },
+  heroSub: { fontSize: 16, color: 'var(--text-tertiary)', marginTop: 12 },
 };
 
-function SummaryCards({ summary }) {
-  const items = [
-    { key: 'pending', label: '待处理', color: 'var(--orange)' },
-    { key: 'in_progress', label: '进行中', color: 'var(--blue)' },
-    { key: 'completed', label: '已完成', color: 'var(--green)' },
-    { key: 'blocked', label: '已阻塞', color: 'var(--red)' },
-  ];
+function statusTone(type, content='') {
+  const t = (type || '').toLowerCase();
+  const c = (content || '').toLowerCase();
+  if (c.includes('final:') || c.includes('all tasks completed')) return { color: 'var(--yellow)', important: true };
+  if (c.includes('blocked') || c.includes('need help') || c.includes('error')) return { color: 'var(--red)', danger: true };
+  if (t.includes('idle')) return { color: 'var(--purple)' };
+  if (t.includes('broadcast')) return { color: 'var(--cyan)' };
+  return { color: 'var(--blue)' };
+}
+
+function StatCard({ label, value, color, foot }) {
   return (
-    <div style={S.summaryGrid}>
-      {items.map(it => (
-        <div key={it.key} style={S.summaryCard}>
-          <div style={S.summaryNum(it.color)}>{summary[it.key] || 0}</div>
-          <div style={S.summaryLabel}>{it.label}</div>
-        </div>
-      ))}
+    <div style={S.summaryCard(color)}>
+      <div style={S.summaryGlow(color)} />
+      <div style={S.summaryAccent(color)} />
+      <div style={S.summaryLabel}>{label}</div>
+      <div style={S.summaryValue(color)}>{value}</div>
+      <div style={S.summaryFoot}>{foot}</div>
     </div>
   );
 }
 
-function Members({ members }) {
+function SummaryCards({ taskSummary, members, team, connected, messages }) {
+  const onlineAgents = connected ? members.length : 0;
+  const leaderStatus = connected ? '在线' : '离线';
+  const urgent = (messages || []).filter(m => ((m.content || '').toLowerCase().includes('final:') || (m.content || '').toLowerCase().includes('blocked') || (m.content || '').toLowerCase().includes('need help'))).length;
+  return (
+    <div style={S.summaryGrid}>
+      <StatCard label="待处理" value={taskSummary.pending || 0} color="var(--orange)" foot="等待分配或启动" />
+      <StatCard label="进行中" value={taskSummary.in_progress || 0} color="var(--blue)" foot="当前活跃执行" />
+      <StatCard label="已完成" value={taskSummary.completed || 0} color="var(--green)" foot="任务已闭环" />
+      <StatCard label="已阻塞" value={taskSummary.blocked || 0} color="var(--red)" foot="需要依赖解除" />
+      <StatCard label="在线 Agent" value={onlineAgents} color="var(--cyan)" foot={`共 ${members.length} 名成员`} />
+      <StatCard label="关键消息" value={urgent} color="var(--purple)" foot={team.leaderName ? `负责人：${team.leaderName}` : '未识别'} />
+    </div>
+  );
+}
+
+function SectionChrome({ title, sub, right, children }) {
   return (
     <div style={S.section}>
+      <div style={S.sectionCorner} />
       <div style={S.sectionHeader}>
-        <span style={S.sectionTitle}>成员</span>
-        <span style={S.sectionBadge}>{members.length}</span>
+        <div>
+          <div style={S.sectionTitle}>{title}</div>
+          <div style={S.sectionSub}>{sub}</div>
+        </div>
+        {right ? <span style={S.sectionSub}>{right}</span> : null}
       </div>
-      <div style={S.membersGrid}>
+      {children}
+    </div>
+  );
+}
+
+function MembersPanel({ members }) {
+  return (
+    <SectionChrome title="成员状态" sub="当前 Team 的协作成员与收件箱状态" right={`${members.length} 人`}>
+      <div style={S.membersWrap}>
         {members.map(m => (
-          <div key={m.name} style={S.memberCard}>
-            <div style={S.memberName}>{m.name}</div>
-            {m.user && <div style={{fontSize: 12, color: 'var(--purple)'}}>{m.user}</div>}
-            <div style={S.memberType}>{m.agentType}</div>
-            <span style={S.inboxBadge(m.inboxCount)}>
-              {m.inboxCount > 0 ? `${m.inboxCount} 条消息` : '收件箱为空'}
-            </span>
+          <div key={m.name} style={{...S.memberCard, ...(m.agentType === 'leader' ? S.memberLeaderCard : {})}}>
+            <div style={S.memberTop}>
+              <div>
+                <div style={S.memberName}>{m.name}</div>
+                <div style={S.memberType}>{m.agentType}</div>
+              </div>
+              <span style={S.memberBadge(m.agentType)}>{m.agentType === 'leader' ? 'Leader' : 'Worker'}</span>
+            </div>
+            {m.user && <div style={{fontSize: 12, color: 'var(--purple)', marginTop: 6}}>{m.user}</div>}
+            <span style={S.inboxPill(m.inboxCount)}>{m.inboxCount > 0 ? `${m.inboxCount} 条未读` : '收件箱为空'}</span>
           </div>
         ))}
       </div>
-    </div>
-  );
-}
-
-function Messages({ messages }) {
-  const sorted = useMemo(() => {
-    return [...messages].sort((a, b) =>
-      (b.timestamp || '').localeCompare(a.timestamp || '')
-    );
-  }, [messages]);
-
-  return (
-    <div style={S.section}>
-      <div style={S.sectionHeader}>
-        <span style={S.sectionTitle}>消息</span>
-        <span style={S.sectionBadge}>{messages.length}</span>
-      </div>
-      <div style={S.msgList}>
-        {sorted.length === 0 ? (
-          <div style={S.msgEmpty}>暂无待处理消息</div>
-        ) : sorted.map((msg, i) => {
-          const time = (msg.timestamp || '').slice(11, 19);
-          const date = (msg.timestamp || '').slice(5, 10);
-          return (
-            <div key={i} style={S.msgItem}>
-              <div style={S.msgMeta}>
-                <span style={S.msgTag}>{msg.type || 'message'}</span>
-                <span style={S.msgFrom}>{msg.from || ''}</span>
-                <span style={S.msgTo}>{msg.to || ''}</span>
-                <span style={S.msgTime}>{date} {time}</span>
-              </div>
-              <div style={S.msgContent}>{msg.content || ''}</div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    </SectionChrome>
   );
 }
 
 function TaskCard({ task, status }) {
+  const extra = status === 'blocked' ? S.blockedTaskCard : status === 'in_progress' ? S.activeTaskCard : {};
   return (
-    <div style={S.taskCard}
-      onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'}
-      onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}>
+    <div style={{...S.taskCard, ...extra}}>
       <div style={S.taskId}>#{(task.id || '').slice(0, 8)}</div>
       <div style={S.taskSubject}>{task.subject || ''}</div>
-      <div style={S.taskOwner}>{task.owner || '-'}</div>
-      {status === 'blocked' && task.blockedBy && task.blockedBy.length > 0 && (
+      <div style={S.taskOwner}>负责人：{task.owner || '-'}</div>
+      {status === 'blocked' && task.blockedBy && task.blockedBy.length > 0 ? (
         <div style={S.taskBlocked}>阻塞于：{task.blockedBy.join(', ')}</div>
-      )}
+      ) : null}
     </div>
   );
 }
 
-function Kanban({ tasks }) {
+function TaskBoard({ tasks }) {
   const cols = [
     { key: 'pending', label: '待处理', color: 'var(--orange)' },
     { key: 'in_progress', label: '进行中', color: 'var(--blue)' },
@@ -324,44 +332,66 @@ function Kanban({ tasks }) {
     { key: 'blocked', label: '已阻塞', color: 'var(--red)' },
   ];
   return (
-    <div style={S.kanban}>
-      {cols.map(col => {
-        const items = tasks[col.key] || [];
-        return (
-          <div key={col.key} style={S.kanbanCol}>
-            <div style={S.kanbanHeader(col.color)}>
-              <span>{col.label}</span>
-              <span>{items.length}</span>
-            </div>
-            <div style={S.kanbanBody}>
-              {items.length === 0 ? (
-                <div style={S.emptyCol}>&mdash;</div>
-              ) : items.map(t => (
-                <TaskCard key={t.id} task={t} status={col.key} />
-              ))}
-            </div>
-          </div>
-        );
-      })}
-    </div>
+    <SectionChrome title="任务战况" sub="当前 Team 的任务流转与阻塞情况">
+      <div style={S.boardWrap}>
+        <div style={S.kanban}>
+          {cols.map(col => {
+            const items = tasks[col.key] || [];
+            return (
+              <div key={col.key} style={S.col}>
+                <div style={S.colHead(col.color)}>
+                  <span style={S.colTitle(col.color)}>{col.label}</span>
+                  <span style={S.colCount}>{items.length}</span>
+                </div>
+                <div style={S.colBody}>
+                  {items.length === 0 ? <div style={S.empty}>暂无任务</div> : items.map(t => <TaskCard key={t.id} task={t} status={col.key} />)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </SectionChrome>
   );
 }
 
-function Dashboard({ data }) {
+function MessagesPanel({ messages }) {
+  const sorted = useMemo(() => [...messages].sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || '')), [messages]);
+  return (
+    <SectionChrome title="消息流" sub="最近回执、同步与协作消息" right={`${messages.length} 条`}>
+      <div style={S.messagesWrap}>
+        {sorted.length === 0 ? <div style={S.empty}>暂无消息</div> : sorted.map((msg, i) => {
+          const time = (msg.timestamp || '').slice(11, 19);
+          const date = (msg.timestamp || '').slice(5, 10);
+          const tone = statusTone(msg.type, msg.content);
+          return (
+            <div key={i} style={{...S.msgCard, ...(tone.important ? S.msgImportant : {}), ...(tone.danger ? S.msgDanger : {})}}>
+              <div style={S.msgMeta}>
+                <span style={S.msgType(tone.color)}>{msg.type || 'message'}</span>
+                <span>{msg.from || ''}</span>
+                <span style={{opacity:0.7}}>→</span>
+                <span>{msg.to || ''}</span>
+                <span style={{marginLeft:'auto'}}>{date} {time}</span>
+              </div>
+              <div style={S.msgBody}>{msg.content || ''}</div>
+            </div>
+          );
+        })}
+      </div>
+    </SectionChrome>
+  );
+}
+
+function Dashboard({ data, connected, refreshedAt }) {
   const { team, members = [], tasks = {}, taskSummary = {}, messages = [] } = data;
   return (
-    <div style={S.container}>
-      <div style={S.teamInfo}>
-        <span style={S.teamName}>{team.name}</span>
-        <span style={S.teamMeta}>
-          负责人：{team.leaderName || '?'} · {members.length} 名成员
-          {team.description ? ` — ${team.description}` : ''}
-        </span>
+    <div style={S.shell}>
+      <SummaryCards taskSummary={taskSummary} members={members} team={team} connected={connected} messages={messages} />
+      <div style={S.cockpit}>
+        <MembersPanel members={members} />
+        <TaskBoard tasks={tasks} />
+        <MessagesPanel messages={messages} />
       </div>
-      <SummaryCards summary={taskSummary} />
-      <Members members={members} />
-      <Messages messages={messages} />
-      <Kanban tasks={tasks} />
     </div>
   );
 }
@@ -371,7 +401,9 @@ function App() {
   const [current, setCurrent] = useState('');
   const [data, setData] = useState(null);
   const [connected, setConnected] = useState(false);
+  const [refreshedAt, setRefreshedAt] = useState('');
   const evtRef = useRef(null);
+  const serverAddr = window.location.host;
 
   useEffect(() => {
     fetch('/api/overview').then(r => r.json()).then(list => {
@@ -387,7 +419,11 @@ function App() {
     const src = new EventSource('/api/events/' + encodeURIComponent(current));
     src.onmessage = e => {
       const d = JSON.parse(e.data);
-      if (!d.error) { setData(d); setConnected(true); }
+      if (!d.error) {
+        setData(d);
+        setConnected(true);
+        setRefreshedAt(new Date().toLocaleTimeString('zh-CN', { hour12: false }));
+      }
     };
     src.onerror = () => setConnected(false);
     evtRef.current = src;
@@ -396,29 +432,39 @@ function App() {
 
   return (
     <>
-      <nav style={S.nav}>
-        <span style={S.navTitle}>ClawTeam 看板</span>
-        <select style={S.select} value={current} onChange={e => setCurrent(e.target.value)}>
-          <option value="">请选择 Team</option>
-          {teams.map(t => (
-            <option key={t.name} value={t.name}>
-              {t.name}{t.description ? ` — ${t.description}` : ''}
-            </option>
-          ))}
-        </select>
-        <div style={{display:'flex',alignItems:'center',marginLeft:'auto'}}>
-          <div style={S.statusDot(connected)} />
-          <span style={S.statusText}>{connected ? '实时连接' : '连接断开'}</span>
+      <div style={S.topbar}>
+        <div style={S.topInner}>
+          <div style={S.brandWrap}>
+            <div style={S.brandBar} />
+            <div style={S.brandTitle}>ClawTeam 指挥中心</div>
+            <div style={S.brandSub}>AI Multi-Agent Command Deck</div>
+          </div>
+          <select style={S.teamSwitcher} value={current} onChange={e => setCurrent(e.target.value)}>
+            <option value="">请选择 Team</option>
+            {teams.map(t => <option key={t.name} value={t.name}>{t.name}{t.description ? ` — ${t.description}` : ''}</option>)}
+          </select>
+          <div style={S.statusPanel}>
+            <div style={S.statusMeta}>
+              <div style={S.statusBlock}>
+                <div style={S.statusTitle}>访问地址</div>
+                <div style={S.statusValue}>{serverAddr}</div>
+              </div>
+              <div style={S.statusBlock}>
+                <div style={S.statusTitle}>最后刷新</div>
+                <div style={S.statusValue}>{refreshedAt || '—'}</div>
+              </div>
+            </div>
+            <div style={{display:'flex', alignItems:'center', gap:8}}>
+              <div style={S.statusDot(connected)}></div>
+              <div style={{fontSize:13, fontWeight:700}}>{connected ? '实时连接' : '连接断开'}</div>
+            </div>
+          </div>
         </div>
-      </nav>
-      {data ? <Dashboard data={data} /> : (
-        <div style={{...S.container, textAlign:'center', paddingTop:120}}>
-          <div style={{fontSize:48, fontWeight:700, letterSpacing:'-0.04em', color:'var(--text)'}}>
-            ClawTeam 看板
-          </div>
-          <div style={{fontSize:15, color:'var(--text-tertiary)', marginTop:8}}>
-            请选择一个 Team 开始查看
-          </div>
+      </div>
+      {data ? <Dashboard data={data} connected={connected} refreshedAt={refreshedAt} /> : (
+        <div style={S.heroEmpty}>
+          <div style={S.heroTitle}>ClawTeam 指挥中心</div>
+          <div style={S.heroSub}>请选择一个 Team，进入综合驾驶舱视图</div>
         </div>
       )}
     </>

@@ -17,6 +17,12 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
   - `CHANGELOG.md`
   - GitHub issue templates for bug reports and feature requests
   - release-notes draft for the first validated OpenClaw release
+- Added a Simplified Chinese README (`README.zh-CN.md`) and language switcher links in the main README.
+- Added a localized, command-center style Chinese Web UI tuned for OpenClaw team monitoring.
+
+### Changed
+- Changed Web UI defaults from loopback-only `127.0.0.1:8080` to LAN-friendly `0.0.0.0:8090`.
+- Upgraded the dashboard layout into a three-column command-center style cockpit with stronger status emphasis, member visibility, task battle-board layout, and highlighted event flow.
 
 ### Fixed
 - Fixed a core OpenClaw orchestration gap where a leader-owned synthesis task could become unblocked but would not automatically execute.
