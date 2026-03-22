@@ -110,8 +110,7 @@ class BoardCollector:
     def collect_overview(self) -> list[dict]:
         """Collect summary data for all teams.
 
-        Returns a list of dicts with keys: name, description, leader,
-        members, tasks, pendingMessages.
+        Returns a list of dicts with richer status fields for dashboard overview.
         """
         teams_meta = TeamManager.discover_teams()
         result = []
@@ -121,13 +120,29 @@ class BoardCollector:
                 data = self.collect_team(name)
                 total_inbox = sum(m["inboxCount"] for m in data["members"])
                 leader = data["team"].get("leaderName", "")
+                summary = data.get("taskSummary", {})
+                messages = data.get("messages", [])
+                last_event_at = messages[0].get("timestamp", "") if messages else ""
+
+                if summary.get("blocked", 0) > 0:
+                    status = "blocked"
+                elif summary.get("in_progress", 0) > 0:
+                    status = "running"
+                elif summary.get("total", 0) > 0 and summary.get("completed", 0) == summary.get("total", 0):
+                    status = "completed"
+                else:
+                    status = "idle"
+
                 result.append({
                     "name": name,
                     "description": meta.get("description", ""),
                     "leader": leader,
                     "members": len(data["members"]),
-                    "tasks": data["taskSummary"]["total"],
+                    "tasks": summary.get("total", 0),
                     "pendingMessages": total_inbox,
+                    "taskSummary": summary,
+                    "status": status,
+                    "lastEventAt": last_event_at,
                 })
             except Exception:
                 result.append({
@@ -137,5 +152,8 @@ class BoardCollector:
                     "members": meta.get("memberCount", 0),
                     "tasks": 0,
                     "pendingMessages": 0,
+                    "taskSummary": {"pending": 0, "in_progress": 0, "completed": 0, "blocked": 0, "total": 0},
+                    "status": "unknown",
+                    "lastEventAt": "",
                 })
         return result

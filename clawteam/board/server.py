@@ -6,8 +6,10 @@ import json
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import unquote
 
 from clawteam.board.collector import BoardCollector
+from clawteam.team.manager import TeamManager
 
 _STATIC_DIR = Path(__file__).parent / "static"
 
@@ -18,6 +20,20 @@ class BoardHandler(BaseHTTPRequestHandler):
     collector: BoardCollector
     default_team: str = ""
     interval: float = 2.0
+
+    def do_POST(self):
+        path = self.path.split("?")[0]
+
+        if path.startswith("/api/team/") and path.endswith("/cleanup"):
+            raw = path[len("/api/team/"):-len("/cleanup")].strip("/")
+            team_name = unquote(raw)
+            if not team_name:
+                self._serve_error(400, "Team name required")
+                return
+            self._cleanup_team(team_name)
+            return
+
+        self._serve_error(404, "Not found")
 
     def do_GET(self):
         path = self.path.split("?")[0]
@@ -50,17 +66,23 @@ class BoardHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", f"{content_type}; charset=utf-8")
         self.send_header("Content-Length", str(len(content)))
+        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
         self.end_headers()
         self.wfile.write(content)
 
-    def _serve_json(self, data):
+    def _serve_json(self, data, status: int = 200):
         body = json.dumps(data, ensure_ascii=False).encode("utf-8")
-        self.send_response(200)
+        self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         self.wfile.write(body)
+
+    def _serve_error(self, status: int, message: str):
+        self._serve_json({"error": message}, status=status)
 
     def _serve_team(self, team_name: str):
         try:
@@ -93,6 +115,19 @@ class BoardHandler(BaseHTTPRequestHandler):
                 time.sleep(self.interval)
         except (BrokenPipeError, ConnectionResetError, OSError):
             pass
+
+    def _cleanup_team(self, team_name: str):
+        team = TeamManager.get_team(team_name)
+        if not team:
+            self._serve_error(404, f"Team '{team_name}' not found")
+            return
+
+        cleaned = TeamManager.cleanup(team_name)
+        self._serve_json({
+            "ok": cleaned,
+            "team": team_name,
+            "message": f"Team '{team_name}' cleaned up"
+        })
 
     def log_message(self, format, *args):
         # Suppress default stderr logging for SSE connections

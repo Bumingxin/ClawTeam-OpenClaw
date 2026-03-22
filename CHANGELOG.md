@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project generally follows semantic versioning in spirit, even when release tags are still evolving.
 
+## [0.3.3] - 2026-03-22
+
+### Added
+- Added homepage **Team overview board** support so users can see multiple teams from the landing page and click into a team directly.
+- Added a **cleanup current team** action directly inside the Web UI header.
+- Added browser-local dashboard settings for:
+  - custom dashboard title
+  - teams per row on the overview board
+  - max visible teams on the overview board
+
+### Changed
+- Homepage overview now refreshes automatically.
+- The overview board now follows the configured display limits more intuitively and keeps teams in the main card grid instead of prematurely splitting them into a list.
+- Dashboard title customization now also updates the browser tab title for consistency.
+- More of the dashboard overview UI is now consistently translated into Simplified Chinese.
+
+### Fixed
+- Fixed the issue where the homepage could appear disconnected until a specific team was opened.
+- Fixed the mismatch between the custom dashboard title and the browser tab title.
+
 ## [0.3.2] - 2026-03-22
 
 ### Added

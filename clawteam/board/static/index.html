@@ -132,22 +132,31 @@ const S = {
     maxWidth: 1600, margin: '0 auto', padding: '16px 24px',
     display: 'grid', gridTemplateColumns: '360px 1fr 430px', gap: 18, alignItems: 'center'
   },
-  brandWrap: { display: 'flex', flexDirection: 'column', gap: 4, position: 'relative', paddingLeft: 14 },
+  teamControl: {
+    display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 132px', gap: 10, alignItems: 'center'
+  },
+  brandWrap: { display: 'flex', flexDirection: 'column', gap: 4, position: 'relative', paddingLeft: 14, cursor: 'pointer' },
   brandBar: {
     position: 'absolute', left: 0, top: 4, bottom: 4, width: 3,
     borderRadius: 999, background: 'linear-gradient(180deg, var(--cyan), var(--blue))',
     boxShadow: '0 0 12px rgba(88,213,255,0.35)'
   },
   brandTitle: { fontSize: 20, fontWeight: 800, letterSpacing: '0.04em' },
-  brandSub: { fontSize: 12, color: 'var(--text-tertiary)', letterSpacing: '0.08em', textTransform: 'uppercase' },
+  brandSub: { fontSize: 12, color: 'var(--text-tertiary)', letterSpacing: '0.04em' },
   teamSwitcher: {
     width: '100%', background: 'linear-gradient(180deg, rgba(13,31,54,0.96), rgba(9,23,40,0.98))',
     color: '#eef7ff', border: '1px solid var(--border)', borderRadius: 14,
     padding: '13px 14px', fontSize: 14, outline: 'none', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.02)',
     appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none'
   },
+  cleanupBtn: enabled => ({
+    width: '100%', borderRadius: 14, padding: '13px 12px', border: enabled ? '1px solid rgba(255,93,116,0.24)' : '1px solid rgba(255,255,255,0.06)',
+    background: enabled ? 'linear-gradient(180deg, rgba(74,16,24,0.92), rgba(45,11,17,0.95))' : 'linear-gradient(180deg, rgba(29,40,54,0.72), rgba(17,24,33,0.82))',
+    color: enabled ? '#ffd9df' : 'rgba(238,247,255,0.40)', fontSize: 13, fontWeight: 700, cursor: enabled ? 'pointer' : 'not-allowed',
+    boxShadow: enabled ? '0 0 0 1px rgba(255,93,116,0.06), 0 0 18px rgba(255,93,116,0.10)' : 'none'
+  }),
   statusPanel: {
-    display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'center',
+    display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 12, alignItems: 'center',
     background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 16,
     padding: '12px 14px', boxShadow: 'var(--shadow)'
   },
@@ -159,6 +168,33 @@ const S = {
     width: 10, height: 10, borderRadius: '50%',
     background: connected ? 'var(--green)' : 'var(--red)',
     animation: connected ? 'pulseGlow 2.2s infinite' : 'pulseRed 2.2s infinite'
+  }),
+
+  settingsBtn: {
+    borderRadius: 12, padding: '10px 12px', border: '1px solid rgba(89,169,255,0.18)',
+    background: 'linear-gradient(180deg, rgba(14,35,59,0.92), rgba(8,20,35,0.95))',
+    color: 'var(--text)', fontSize: 13, fontWeight: 700, cursor: 'pointer'
+  },
+  modalMask: {
+    position: 'fixed', inset: 0, background: 'rgba(2,7,14,0.65)', backdropFilter: 'blur(10px)', zIndex: 1000,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20
+  },
+  modal: {
+    width: 520, maxWidth: '100%', background: 'linear-gradient(180deg, rgba(11,30,52,0.98), rgba(7,17,30,0.98))',
+    border: '1px solid rgba(89,169,255,0.18)', borderRadius: 18, boxShadow: '0 20px 50px rgba(0,0,0,0.45)', overflow: 'hidden'
+  },
+  modalBody: { padding: 18, display: 'grid', gap: 14 },
+  field: { display: 'grid', gap: 8 },
+  label: { fontSize: 12, color: 'var(--text-secondary)' },
+  input: {
+    width: '100%', background: 'rgba(255,255,255,0.03)', color: 'var(--text)', border: '1px solid rgba(89,169,255,0.12)',
+    borderRadius: 12, padding: '12px 12px', fontSize: 14, outline: 'none'
+  },
+  modalActions: { display: 'flex', justifyContent: 'flex-end', gap: 10, padding: '0 18px 18px' },
+  actionBtn: primary => ({
+    borderRadius: 12, padding: '10px 14px', border: primary ? '1px solid rgba(89,169,255,0.24)' : '1px solid rgba(255,255,255,0.08)',
+    background: primary ? 'linear-gradient(180deg, rgba(20,64,110,0.95), rgba(12,40,70,0.98))' : 'rgba(255,255,255,0.04)',
+    color: 'var(--text)', fontSize: 13, fontWeight: 700, cursor: 'pointer'
   }),
   summaryGrid: { display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 14, marginTop: 22, marginBottom: 22 },
   summaryCard: color => ({
@@ -244,6 +280,30 @@ const S = {
   heroEmpty: { maxWidth: 1600, margin: '0 auto', padding: '140px 24px', textAlign: 'center' },
   heroTitle: { fontSize: 56, fontWeight: 800, letterSpacing: '-0.05em' },
   heroSub: { fontSize: 16, color: 'var(--text-tertiary)', marginTop: 12 },
+  overviewWrap: { marginBottom: 18 },
+  overviewTopGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 12, padding: 14 },
+  teamHeroCard: status => ({
+    background: 'linear-gradient(180deg, rgba(12,31,52,0.84), rgba(8,19,34,0.94))',
+    border: status === 'blocked' ? '1px solid rgba(255,93,116,0.26)' : status === 'running' ? '1px solid rgba(89,169,255,0.22)' : '1px solid rgba(89,169,255,0.10)',
+    borderRadius: 16, padding: 16, cursor: 'pointer', boxShadow: status === 'blocked' ? '0 0 18px rgba(255,93,116,0.10)' : '0 0 16px rgba(89,169,255,0.08)'
+  }),
+  teamHeroHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  teamHeroName: { fontSize: 15, fontWeight: 800 },
+  teamHeroDesc: { fontSize: 12, color: 'var(--text-tertiary)', marginTop: 6, lineHeight: 1.45 },
+  teamStatusPill: status => ({
+    fontSize: 11, fontWeight: 700, padding: '4px 8px', borderRadius: 999,
+    color: status === 'blocked' ? 'var(--red)' : status === 'running' ? 'var(--blue)' : status === 'completed' ? 'var(--green)' : 'var(--text-secondary)',
+    background: status === 'blocked' ? 'rgba(255,93,116,0.10)' : status === 'running' ? 'rgba(89,169,255,0.10)' : status === 'completed' ? 'rgba(48,212,139,0.10)' : 'rgba(255,255,255,0.05)',
+    border: '1px solid rgba(255,255,255,0.08)'
+  }),
+  teamMiniGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginTop: 14 },
+  teamMiniItem: { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10, padding: '10px 8px', textAlign: 'center' },
+  teamMiniValue: { fontSize: 18, fontWeight: 800 },
+  teamMiniLabel: { fontSize: 10, color: 'var(--text-tertiary)', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.08em' },
+  teamMetaRow: { display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 12, fontSize: 12, color: 'var(--text-secondary)' },
+  teamListWrap: { padding: '0 14px 14px' },
+  teamRow: { display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) 100px 120px 90px 80px 80px 80px 80px', gap: 10, alignItems: 'center', padding: '12px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', marginTop: 10, cursor: 'pointer' },
+  teamRowHead: { display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) 100px 120px 90px 80px 80px 80px 80px', gap: 10, padding: '0 14px', fontSize: 11, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em' },
 };
 
 function statusTone(type, content='') {
@@ -284,6 +344,51 @@ function SummaryCards({ taskSummary, members, team, connected, messages }) {
   );
 }
 
+function TeamOverview({ teams, onSelect, settings }) {
+  const ordered = [...teams].sort((a, b) => {
+    const rank = s => s === 'blocked' ? 0 : s === 'running' ? 1 : s === 'completed' ? 2 : 3;
+    const byStatus = rank(a.status) - rank(b.status);
+    if (byStatus !== 0) return byStatus;
+    const ai = a.taskSummary?.in_progress || 0;
+    const bi = b.taskSummary?.in_progress || 0;
+    if (bi !== ai) return bi - ai;
+    return (b.lastEventAt || '').localeCompare(a.lastEventAt || '');
+  });
+  const totalLimit = Math.max(1, Number(settings.maxTeams || 8));
+  const perRow = Math.max(1, Number(settings.teamsPerRow || 4));
+  const visible = ordered.slice(0, totalLimit);
+
+  return (
+    <SectionChrome title="总看板" sub="重点团队自动排序，点击可直接进入对应团队" right={`共 ${teams.length} 个 Team`}>
+      <div style={S.overviewWrap}>
+        {visible.length > 0 ? (
+          <div style={{...S.overviewTopGrid, gridTemplateColumns: `repeat(${perRow}, minmax(0, 1fr))`}}>
+            {visible.map(t => (
+              <div key={t.name} style={S.teamHeroCard(t.status)} onClick={() => onSelect(t.name)}>
+                <div style={S.teamHeroHead}>
+                  <div style={S.teamHeroName}>{t.name}</div>
+                  <span style={S.teamStatusPill(t.status)}>{t.status === 'blocked' ? '已阻塞' : t.status === 'running' ? '执行中' : t.status === 'completed' ? '已完成' : '待机'}</span>
+                </div>
+                <div style={S.teamHeroDesc}>{t.description || '暂无描述'}</div>
+                <div style={S.teamMiniGrid}>
+                  <div style={S.teamMiniItem}><div style={S.teamMiniValue}>{t.taskSummary?.in_progress || 0}</div><div style={S.teamMiniLabel}>进行中</div></div>
+                  <div style={S.teamMiniItem}><div style={S.teamMiniValue}>{t.taskSummary?.completed || 0}</div><div style={S.teamMiniLabel}>已完成</div></div>
+                  <div style={S.teamMiniItem}><div style={S.teamMiniValue}>{t.taskSummary?.blocked || 0}</div><div style={S.teamMiniLabel}>阻塞</div></div>
+                  <div style={S.teamMiniItem}><div style={S.teamMiniValue}>{t.pendingMessages || 0}</div><div style={S.teamMiniLabel}>消息</div></div>
+                </div>
+                <div style={S.teamMetaRow}>
+                  <span>负责人：{t.leader || '—'}</span>
+                  <span>成员：{t.members}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </SectionChrome>
+  );
+}
+
 function SectionChrome({ title, sub, right, children }) {
   return (
     <div style={S.section}>
@@ -311,7 +416,7 @@ function MembersPanel({ members }) {
                 <div style={S.memberName}>{m.name}</div>
                 <div style={S.memberType}>{m.agentType}</div>
               </div>
-              <span style={S.memberBadge(m.agentType)}>{m.agentType === 'leader' ? 'Leader' : 'Worker'}</span>
+              <span style={S.memberBadge(m.agentType)}>{m.agentType === 'leader' ? '负责人' : '执行者'}</span>
             </div>
             {m.user && <div style={{fontSize: 12, color: 'var(--purple)', marginTop: 6}}>{m.user}</div>}
             <span style={S.inboxPill(m.inboxCount)}>{m.inboxCount > 0 ? `${m.inboxCount} 条未读` : '收件箱为空'}</span>
@@ -394,11 +499,12 @@ function MessagesPanel({ messages }) {
   );
 }
 
-function Dashboard({ data, connected, refreshedAt }) {
+function Dashboard({ data, connected, refreshedAt, teams, onSelectTeam, settings }) {
   const { team, members = [], tasks = {}, taskSummary = {}, messages = [] } = data;
   return (
     <div style={S.shell}>
       <SummaryCards taskSummary={taskSummary} members={members} team={team} connected={connected} messages={messages} />
+      <TeamOverview teams={teams} onSelect={onSelectTeam} settings={settings} />
       <div style={S.cockpit}>
         <MembersPanel members={members} />
         <TaskBoard tasks={tasks} />
@@ -414,19 +520,48 @@ function App() {
   const [data, setData] = useState(null);
   const [connected, setConnected] = useState(false);
   const [refreshedAt, setRefreshedAt] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [settings, setSettings] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('clawteam-board-settings') || '{}');
+    } catch {
+      return {};
+    }
+  });
   const evtRef = useRef(null);
   const serverAddr = window.location.host;
+  const titleText = settings.title || 'ClawTeam 指挥中心';
 
   useEffect(() => {
+    document.title = titleText;
+  }, [titleText]);
+
+  const loadTeams = (preferred = '') => {
     fetch('/api/overview').then(r => r.json()).then(list => {
       setTeams(list);
-      if (list.length === 1) setCurrent(list[0].name);
+      setConnected(true);
+      setRefreshedAt(new Date().toLocaleTimeString('zh-CN', { hour12: false }));
+      if (preferred && list.some(t => t.name === preferred)) {
+        setCurrent(preferred);
+      } else if (list.length === 1) {
+        setCurrent(list[0].name);
+      } else if (!list.some(t => t.name === current)) {
+        setCurrent('');
+        setData(null);
+      }
     }).catch(() => {});
-  }, []);
+  };
+
+  useEffect(() => {
+    loadTeams(current);
+    const timer = setInterval(() => loadTeams(current), 5000);
+    return () => clearInterval(timer);
+  }, [current]);
 
   useEffect(() => {
     if (evtRef.current) { evtRef.current.close(); evtRef.current = null; }
-    if (!current) { setData(null); setConnected(false); return; }
+    if (!current) { setData(null); return; }
 
     const src = new EventSource('/api/events/' + encodeURIComponent(current));
     src.onmessage = e => {
@@ -442,19 +577,53 @@ function App() {
     return () => src.close();
   }, [current]);
 
+  const handleSaveSettings = () => {
+    localStorage.setItem('clawteam-board-settings', JSON.stringify(settings));
+    setShowSettings(false);
+  };
+
+  const handleCleanup = async () => {
+    if (!current || busy) return;
+    const ok = window.confirm(`确认清理当前 Team「${current}」吗？\n\n这会删除该 Team 的任务、收件箱、事件记录和关联元数据。`);
+    if (!ok) return;
+    setBusy(true);
+    try {
+      const resp = await fetch(`/api/team/${encodeURIComponent(current)}/cleanup`, { method: 'POST' });
+      const result = await resp.json();
+      if (!resp.ok || result.error) {
+        window.alert(result.error || '清理失败');
+      } else {
+        if (evtRef.current) { evtRef.current.close(); evtRef.current = null; }
+        setCurrent('');
+        setData(null);
+        setConnected(false);
+        loadTeams('');
+      }
+    } catch (e) {
+      window.alert('清理失败，请稍后再试');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <>
       <div style={S.topbar}>
         <div style={S.topInner}>
-          <div style={S.brandWrap}>
+          <div style={S.brandWrap} onClick={() => { setCurrent(''); setData(null); setConnected(false); }} title="返回首页总览">
             <div style={S.brandBar} />
-            <div style={S.brandTitle}>ClawTeam 指挥中心</div>
-            <div style={S.brandSub}>AI Multi-Agent Command Deck</div>
+            <div style={S.brandTitle}>{titleText}</div>
+            <div style={S.brandSub}>多智能体协作总控台</div>
           </div>
-          <select style={S.teamSwitcher} value={current} onChange={e => setCurrent(e.target.value)}>
-            <option value="">请选择 Team</option>
-            {teams.map(t => <option key={t.name} value={t.name}>{t.name}{t.description ? ` — ${t.description}` : ''}</option>)}
-          </select>
+          <div style={S.teamControl}>
+            <select style={S.teamSwitcher} value={current} onChange={e => setCurrent(e.target.value)}>
+              <option value="">请选择 Team</option>
+              {teams.map(t => <option key={t.name} value={t.name}>{t.name}{t.description ? ` — ${t.description}` : ''}</option>)}
+            </select>
+            <button style={S.cleanupBtn(!!current && !busy)} onClick={handleCleanup} disabled={!current || busy}>
+              {busy ? '清理中…' : '清理当前 Team'}
+            </button>
+          </div>
           <div style={S.statusPanel}>
             <div style={S.statusMeta}>
               <div style={S.statusBlock}>
@@ -466,6 +635,7 @@ function App() {
                 <div style={S.statusValue}>{refreshedAt || '—'}</div>
               </div>
             </div>
+            <button style={S.settingsBtn} onClick={() => setShowSettings(true)}>设置</button>
             <div style={{display:'flex', alignItems:'center', gap:8}}>
               <div style={S.statusDot(connected)}></div>
               <div style={{fontSize:13, fontWeight:700}}>{connected ? '实时连接' : '连接断开'}</div>
@@ -473,12 +643,48 @@ function App() {
           </div>
         </div>
       </div>
-      {data ? <Dashboard data={data} connected={connected} refreshedAt={refreshedAt} /> : (
-        <div style={S.heroEmpty}>
-          <div style={S.heroTitle}>ClawTeam 指挥中心</div>
-          <div style={S.heroSub}>请选择一个 Team，进入综合驾驶舱视图</div>
-        </div>
+      {data ? <Dashboard data={data} connected={connected} refreshedAt={refreshedAt} teams={teams} onSelectTeam={setCurrent} settings={settings} /> : (
+        teams.length > 0 ? (
+          <div style={S.shell}>
+            <TeamOverview teams={teams} onSelect={setCurrent} settings={settings} />
+          </div>
+        ) : (
+          <div style={S.heroEmpty}>
+            <div style={S.heroTitle}>ClawTeam 指挥中心</div>
+            <div style={S.heroSub}>当前暂无 Team，可在创建后回到这里进行总览与调度</div>
+          </div>
+        )
       )}
+      {showSettings ? (
+        <div style={S.modalMask} onClick={() => setShowSettings(false)}>
+          <div style={S.modal} onClick={e => e.stopPropagation()}>
+            <div style={S.sectionHeader}>
+              <div>
+                <div style={S.sectionTitle}>界面设置</div>
+                <div style={S.sectionSub}>仅保存在当前浏览器</div>
+              </div>
+            </div>
+            <div style={S.modalBody}>
+              <div style={S.field}>
+                <label style={S.label}>系统标题</label>
+                <input style={S.input} value={settings.title || ''} onChange={e => setSettings({...settings, title: e.target.value})} placeholder="ClawTeam 指挥中心" />
+              </div>
+              <div style={S.field}>
+                <label style={S.label}>总看板每行显示团队数量</label>
+                <input style={S.input} type="number" min="1" max="4" value={settings.teamsPerRow || 4} onChange={e => setSettings({...settings, teamsPerRow: Number(e.target.value || 4)})} />
+              </div>
+              <div style={S.field}>
+                <label style={S.label}>总看板显示团队总数量</label>
+                <input style={S.input} type="number" min="1" max="50" value={settings.maxTeams || 8} onChange={e => setSettings({...settings, maxTeams: Number(e.target.value || 8)})} />
+              </div>
+            </div>
+            <div style={S.modalActions}>
+              <button style={S.actionBtn(false)} onClick={() => setShowSettings(false)}>取消</button>
+              <button style={S.actionBtn(true)} onClick={handleSaveSettings}>保存</button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

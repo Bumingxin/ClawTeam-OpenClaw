@@ -278,6 +278,9 @@ The dashboard Web UI now defaults to a **LAN-accessible** configuration for Open
 - Default host: `0.0.0.0`
 - Default port: `8090`
 - Current UI language: **Simplified Chinese**
+- Home page includes a multi-team overview board
+- Header includes a built-in **cleanup current team** action
+- Dashboard settings can be customized per browser (local storage)
 
 Start it with:
 
@@ -290,6 +293,12 @@ Then open it from another device on the same LAN using:
 ```text
 http://<your-lan-ip>:8090
 ```
+
+Current browser-local dashboard settings include:
+
+- custom dashboard title
+- teams per row on the overview board
+- max visible teams on the overview board
 
 ---
 
