@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ClawTeam</title>
+<title>ClawTeam 看板</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -46,8 +46,6 @@
 <script type="text/babel">
 const { useState, useEffect, useRef, useMemo } = React;
 
-// ─── Styles ────────────────────────────────────────────────────────────────
-
 const S = {
   nav: {
     position: 'sticky', top: 0, zIndex: 100,
@@ -79,8 +77,6 @@ const S = {
   container: {
     maxWidth: 1200, margin: '0 auto', padding: '24px 32px',
   },
-
-  // Summary cards
   summaryGrid: {
     display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
     gap: 12, marginBottom: 24,
@@ -101,8 +97,6 @@ const S = {
     textTransform: 'uppercase', letterSpacing: '0.06em',
     marginTop: 6,
   },
-
-  // Section
   section: {
     background: 'var(--surface)',
     border: '1px solid var(--border)',
@@ -123,8 +117,6 @@ const S = {
     background: 'var(--surface3)', borderRadius: 10,
     padding: '2px 8px',
   },
-
-  // Members
   membersGrid: {
     display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
     gap: 1, background: 'var(--border)',
@@ -145,8 +137,6 @@ const S = {
     background: count > 0 ? 'rgba(255,69,58,0.15)' : 'var(--surface3)',
     color: count > 0 ? 'var(--red)' : 'var(--text-tertiary)',
   }),
-
-  // Messages
   msgList: {
     maxHeight: 360, overflowY: 'auto',
   },
@@ -176,8 +166,6 @@ const S = {
     padding: 32, textAlign: 'center',
     fontSize: 13, color: 'var(--text-tertiary)',
   },
-
-  // Kanban
   kanban: {
     display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
     gap: 12,
@@ -222,8 +210,6 @@ const S = {
     padding: 24, textAlign: 'center',
     fontSize: 12, color: 'var(--text-tertiary)',
   },
-
-  // Team header
   teamInfo: {
     display: 'flex', alignItems: 'baseline', gap: 16,
     marginBottom: 20,
@@ -237,14 +223,12 @@ const S = {
   },
 };
 
-// ─── Components ────────────────────────────────────────────────────────────
-
 function SummaryCards({ summary }) {
   const items = [
-    { key: 'pending', label: 'Pending', color: 'var(--orange)' },
-    { key: 'in_progress', label: 'In Progress', color: 'var(--blue)' },
-    { key: 'completed', label: 'Completed', color: 'var(--green)' },
-    { key: 'blocked', label: 'Blocked', color: 'var(--red)' },
+    { key: 'pending', label: '待处理', color: 'var(--orange)' },
+    { key: 'in_progress', label: '进行中', color: 'var(--blue)' },
+    { key: 'completed', label: '已完成', color: 'var(--green)' },
+    { key: 'blocked', label: '已阻塞', color: 'var(--red)' },
   ];
   return (
     <div style={S.summaryGrid}>
@@ -262,7 +246,7 @@ function Members({ members }) {
   return (
     <div style={S.section}>
       <div style={S.sectionHeader}>
-        <span style={S.sectionTitle}>Members</span>
+        <span style={S.sectionTitle}>成员</span>
         <span style={S.sectionBadge}>{members.length}</span>
       </div>
       <div style={S.membersGrid}>
@@ -272,7 +256,7 @@ function Members({ members }) {
             {m.user && <div style={{fontSize: 12, color: 'var(--purple)'}}>{m.user}</div>}
             <div style={S.memberType}>{m.agentType}</div>
             <span style={S.inboxBadge(m.inboxCount)}>
-              {m.inboxCount > 0 ? `${m.inboxCount} message${m.inboxCount > 1 ? 's' : ''}` : 'inbox empty'}
+              {m.inboxCount > 0 ? `${m.inboxCount} 条消息` : '收件箱为空'}
             </span>
           </div>
         ))}
@@ -291,12 +275,12 @@ function Messages({ messages }) {
   return (
     <div style={S.section}>
       <div style={S.sectionHeader}>
-        <span style={S.sectionTitle}>Messages</span>
+        <span style={S.sectionTitle}>消息</span>
         <span style={S.sectionBadge}>{messages.length}</span>
       </div>
       <div style={S.msgList}>
         {sorted.length === 0 ? (
-          <div style={S.msgEmpty}>No pending messages</div>
+          <div style={S.msgEmpty}>暂无待处理消息</div>
         ) : sorted.map((msg, i) => {
           const time = (msg.timestamp || '').slice(11, 19);
           const date = (msg.timestamp || '').slice(5, 10);
@@ -326,7 +310,7 @@ function TaskCard({ task, status }) {
       <div style={S.taskSubject}>{task.subject || ''}</div>
       <div style={S.taskOwner}>{task.owner || '-'}</div>
       {status === 'blocked' && task.blockedBy && task.blockedBy.length > 0 && (
-        <div style={S.taskBlocked}>blocked by: {task.blockedBy.join(', ')}</div>
+        <div style={S.taskBlocked}>阻塞于：{task.blockedBy.join(', ')}</div>
       )}
     </div>
   );
@@ -334,10 +318,10 @@ function TaskCard({ task, status }) {
 
 function Kanban({ tasks }) {
   const cols = [
-    { key: 'pending', label: 'Pending', color: 'var(--orange)' },
-    { key: 'in_progress', label: 'In Progress', color: 'var(--blue)' },
-    { key: 'completed', label: 'Completed', color: 'var(--green)' },
-    { key: 'blocked', label: 'Blocked', color: 'var(--red)' },
+    { key: 'pending', label: '待处理', color: 'var(--orange)' },
+    { key: 'in_progress', label: '进行中', color: 'var(--blue)' },
+    { key: 'completed', label: '已完成', color: 'var(--green)' },
+    { key: 'blocked', label: '已阻塞', color: 'var(--red)' },
   ];
   return (
     <div style={S.kanban}>
@@ -370,8 +354,8 @@ function Dashboard({ data }) {
       <div style={S.teamInfo}>
         <span style={S.teamName}>{team.name}</span>
         <span style={S.teamMeta}>
-          led by {team.leaderName || '?'} &middot; {members.length} member{members.length !== 1 ? 's' : ''}
-          {team.description ? ` \u2014 ${team.description}` : ''}
+          负责人：{team.leaderName || '?'} · {members.length} 名成员
+          {team.description ? ` — ${team.description}` : ''}
         </span>
       </div>
       <SummaryCards summary={taskSummary} />
@@ -413,27 +397,27 @@ function App() {
   return (
     <>
       <nav style={S.nav}>
-        <span style={S.navTitle}>ClawTeam</span>
+        <span style={S.navTitle}>ClawTeam 看板</span>
         <select style={S.select} value={current} onChange={e => setCurrent(e.target.value)}>
-          <option value="">Select Team</option>
+          <option value="">请选择 Team</option>
           {teams.map(t => (
             <option key={t.name} value={t.name}>
-              {t.name}{t.description ? ` \u2014 ${t.description}` : ''}
+              {t.name}{t.description ? ` — ${t.description}` : ''}
             </option>
           ))}
         </select>
         <div style={{display:'flex',alignItems:'center',marginLeft:'auto'}}>
           <div style={S.statusDot(connected)} />
-          <span style={S.statusText}>{connected ? 'Live' : 'Disconnected'}</span>
+          <span style={S.statusText}>{connected ? '实时连接' : '连接断开'}</span>
         </div>
       </nav>
       {data ? <Dashboard data={data} /> : (
         <div style={{...S.container, textAlign:'center', paddingTop:120}}>
           <div style={{fontSize:48, fontWeight:700, letterSpacing:'-0.04em', color:'var(--text)'}}>
-            ClawTeam
+            ClawTeam 看板
           </div>
           <div style={{fontSize:15, color:'var(--text-tertiary)', marginTop:8}}>
-            Select a team to get started
+            请选择一个 Team 开始查看
           </div>
         </div>
       )}

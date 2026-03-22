@@ -1881,8 +1881,8 @@ def board_live(
 @board_app.command("serve")
 def board_serve(
     team: Optional[str] = typer.Argument(None, help="Team name (optional, shows all if omitted)"),
-    port: int = typer.Option(8080, "--port", "-p", help="HTTP server port"),
-    host: str = typer.Option("127.0.0.1", "--host", help="Bind address"),
+    port: int = typer.Option(8090, "--port", "-p", help="HTTP server port"),
+    host: str = typer.Option("0.0.0.0", "--host", help="Bind address"),
     interval: float = typer.Option(2.0, "--interval", "-i", help="SSE push interval in seconds"),
 ):
     """Start Web UI dashboard server."""

@@ -102,8 +102,8 @@ class BoardHandler(BaseHTTPRequestHandler):
 
 
 def serve(
-    host: str = "127.0.0.1",
-    port: int = 8080,
+    host: str = "0.0.0.0",
+    port: int = 8090,
     default_team: str = "",
     interval: float = 2.0,
 ):
