@@ -316,6 +316,36 @@ function statusTone(type, content='') {
   return { color: 'var(--blue)' };
 }
 
+
+function zhMemberType(type) {
+  if ((type || '') === 'leader') return '负责人';
+  if ((type || '') === 'general-purpose') return '通用执行者';
+  return type || '未知角色';
+}
+
+function zhTaskSubject(subject) {
+  if (!subject) return '';
+  return subject
+    .replace(/^Analyze\s+(\d{6})\s+recent\s+price\/technical\s+trend$/i, '分析 $1 技术走势')
+    .replace(/^Analyze\s+(\d{6})\s+business\/news\/fundamental\s+context$/i, '分析 $1 业务/新闻/基本面')
+    .replace(/^Synthesize\s+(\d{6})\s+into\s+one\s+concise\s+final\s+view$/i, '汇总 $1 最终结论')
+    .replace(/^Analyze\s+(\d{6})\s+(.+)$/i, '分析 $1（$2）')
+    .replace(/^Synthesize\s+the\s+two\s+analyses\s+into\s+one\s+concise\s+final\s+view\s+on\s+(\d{6})$/i, '汇总 $1 最终结论');
+}
+
+function zhTeamDescription(desc, name) {
+  if (!desc) return '暂无描述';
+  let d = desc
+    .replace(/^Analyze\s+(\d{6})\s+(.+)$/i, '股票分析：$1 $2')
+    .replace(/^Analyze\s+recent\s+OpenClaw\s+update\s+trends.*$/i, '分析 OpenClaw 近期变化趋势')
+    .replace(/^Parallel\s+test\s+with\s+two\s+OpenClaw\s+workers$/i, '双 worker 并行测试')
+    .replace(/^Dependency\s+\+\s+leader\s+synthesis\s+test.*$/i, '依赖任务 + Leader 汇总测试');
+  if (/^stock-\d{6}$/.test(name || '')) {
+    d = d.replace(/^Analyze\s+/i, '股票分析：');
+  }
+  return d;
+}
+
 function StatCard({ label, value, color, foot }) {
   return (
     <div style={S.summaryCard(color)}>
@@ -369,7 +399,7 @@ function TeamOverview({ teams, onSelect, settings }) {
                   <div style={S.teamHeroName}>{t.name}</div>
                   <span style={S.teamStatusPill(t.status)}>{t.status === 'blocked' ? '已阻塞' : t.status === 'running' ? '执行中' : t.status === 'completed' ? '已完成' : '待机'}</span>
                 </div>
-                <div style={S.teamHeroDesc}>{t.description || '暂无描述'}</div>
+                <div style={S.teamHeroDesc}>{zhTeamDescription(t.description, t.name)}</div>
                 <div style={S.teamMiniGrid}>
                   <div style={S.teamMiniItem}><div style={S.teamMiniValue}>{t.taskSummary?.in_progress || 0}</div><div style={S.teamMiniLabel}>进行中</div></div>
                   <div style={S.teamMiniItem}><div style={S.teamMiniValue}>{t.taskSummary?.completed || 0}</div><div style={S.teamMiniLabel}>已完成</div></div>
@@ -414,7 +444,7 @@ function MembersPanel({ members }) {
             <div style={S.memberTop}>
               <div>
                 <div style={S.memberName}>{m.name}</div>
-                <div style={S.memberType}>{m.agentType}</div>
+                <div style={S.memberType}>{zhMemberType(m.agentType)}</div>
               </div>
               <span style={S.memberBadge(m.agentType)}>{m.agentType === 'leader' ? '负责人' : '执行者'}</span>
             </div>
@@ -432,7 +462,7 @@ function TaskCard({ task, status }) {
   return (
     <div style={{...S.taskCard, ...extra}}>
       <div style={S.taskId}>#{(task.id || '').slice(0, 8)}</div>
-      <div style={S.taskSubject}>{task.subject || ''}</div>
+      <div style={S.taskSubject}>{zhTaskSubject(task.subject || '')}</div>
       <div style={S.taskOwner}>负责人：{task.owner || '-'}</div>
       {status === 'blocked' && task.blockedBy && task.blockedBy.length > 0 ? (
         <div style={S.taskBlocked}>阻塞于：{task.blockedBy.join(', ')}</div>
@@ -544,8 +574,6 @@ function App() {
       setRefreshedAt(new Date().toLocaleTimeString('zh-CN', { hour12: false }));
       if (preferred && list.some(t => t.name === preferred)) {
         setCurrent(preferred);
-      } else if (list.length === 1) {
-        setCurrent(list[0].name);
       } else if (!list.some(t => t.name === current)) {
         setCurrent('');
         setData(null);

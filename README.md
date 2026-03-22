@@ -300,6 +300,12 @@ Current browser-local dashboard settings include:
 - teams per row on the overview board
 - max visible teams on the overview board
 
+Additional current dashboard behavior:
+
+- the home page stays on the overview landing page by default
+- clicking the brand title returns directly to the overview page
+- more team descriptions, member roles, and task subjects are translated into Simplified Chinese at the display layer
+
 ---
 
 ## Use Cases

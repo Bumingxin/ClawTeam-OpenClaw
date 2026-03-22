@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project generally follows semantic versioning in spirit, even when release tags are still evolving.
 
+## [0.3.4] - 2026-03-22
+
+### Added
+- Added display-layer Simplified Chinese translation for more team/task/role text in the dashboard.
+- Added homepage brand click behavior to return directly to the overview page.
+
+### Changed
+- Homepage now always prefers the overview landing page instead of auto-entering a team when only one team exists.
+- Overview board content is now more consistently localized for Chinese-first usage.
+
+### Fixed
+- Fixed the issue where the homepage could still auto-open a single team instead of staying on the overview page.
+- Improved readability of team descriptions, member roles, and task subjects through display-layer translation.
+
 ## [0.3.3] - 2026-03-22
 
 ### Added
