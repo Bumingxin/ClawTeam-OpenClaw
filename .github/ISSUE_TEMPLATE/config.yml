@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: OpenClaw Validation Notes
+    url: https://github.com/Bumingxin/ClawTeam-OpenClaw/blob/main/docs/openclaw-validation.md
+    about: Review the validated OpenClaw workflows before filing runtime issues.
