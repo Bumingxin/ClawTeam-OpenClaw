@@ -5,7 +5,9 @@ from __future__ import annotations
 import fcntl
 import json
 import os
+import subprocess
 import tempfile
+import shutil
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -267,9 +269,60 @@ class TaskStore:
                 task = TaskItem.model_validate(data)
                 if completed_task_id in task.blocked_by:
                     task.blocked_by.remove(completed_task_id)
+                    became_pending = False
                     if not task.blocked_by and task.status == TaskStatus.blocked:
                         task.status = TaskStatus.pending
+                        became_pending = True
                     task.updated_at = _now_iso()
                     self._save_unlocked(task)
+                    if became_pending:
+                        self._maybe_trigger_leader_summary(task)
             except Exception:
                 continue
+
+    def _maybe_trigger_leader_summary(self, task: TaskItem) -> None:
+        """Auto-spawn the leader when a leader-owned blocked task becomes pending.
+
+        This provides a minimal orchestration bridge for synthesis tasks: once all
+        dependencies are completed and a leader-owned task is unblocked, launch a
+        leader agent to execute that synthesis work automatically.
+        """
+        try:
+            from clawteam.spawn.registry import is_agent_alive
+            from clawteam.team.manager import TeamManager
+
+            leader_name = TeamManager.get_leader_name(self.team_name)
+            if not leader_name or task.owner != leader_name:
+                return
+
+            # Don't spawn another leader if one is already active for this team.
+            if is_agent_alive(self.team_name, leader_name):
+                return
+
+            clawteam_bin = os.environ.get("CLAWTEAM_BIN") or shutil.which("clawteam") or "clawteam"
+            prompt = (
+                f"Your synthesis task '{task.subject}' is now unblocked. "
+                f"Read pending inbox messages addressed to {leader_name} in team {self.team_name}, "
+                f"synthesize the completed worker findings into one concise final summary, "
+                f"send that summary back to {leader_name} via 'clawteam inbox send {self.team_name} {leader_name} \"FINAL: <summary>\"', "
+                f"then mark task {task.id} as in_progress and completed appropriately."
+            )
+            subprocess.run(
+                [
+                    clawteam_bin,
+                    "spawn",
+                    "-t",
+                    self.team_name,
+                    "-n",
+                    leader_name,
+                    "--agent-type",
+                    "leader",
+                    "--task",
+                    prompt,
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        except Exception:
+            return
