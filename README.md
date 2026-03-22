@@ -307,6 +307,17 @@ This script is intended for Linux, macOS, and WSL shells, not native PowerShell.
 | `pip install -e .` fails | Missing build deps | Run `pip install hatchling` first |
 | `clawteam --version` shows "Coming Soon" | Installed the npm name-squatting package (`a9logic`, unrelated to this project) | `npm uninstall -g clawteam`, then reinstall per Step 2 |
 
+### Verified OpenClaw Flows
+
+This fork has been validated in a live OpenClaw environment for the following workflows:
+
+- **Single-worker execution** — a spawned OpenClaw worker can receive a task, execute it, and report back to the team leader.
+- **Two-worker parallel execution** — two OpenClaw workers can run different tasks concurrently and independently report results.
+- **Dependency resolution** — tasks created with `--blocked-by` automatically move from `blocked` to `pending` when upstream tasks complete.
+- **Leader auto-synthesis** — when a leader-owned synthesis task becomes unblocked, the system can now auto-spawn a leader agent to read worker outputs, synthesize results, and close the task loop.
+
+A detailed developer-oriented validation log is available at [`docs/openclaw-validation.md`](docs/openclaw-validation.md).
+
 ---
 
 ## Use Cases
