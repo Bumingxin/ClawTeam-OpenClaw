@@ -137,6 +137,7 @@ class TeamManager:
         agent_id: str,
         agent_type: str = "general-purpose",
         user: str = "",
+        model_name: str = "",
     ) -> TeamMember:
         validate_identifier(team_name, "team name")
         validate_identifier(member_name, "member name")
@@ -152,6 +153,7 @@ class TeamManager:
             user=user,
             agent_id=agent_id,
             agent_type=agent_type,
+            model_name=model_name,
         )
         config.members.append(member)
         _save_config(config)
