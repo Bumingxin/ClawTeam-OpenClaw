@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import json
+import os
+import shutil
+import subprocess
 import time
 import uuid
 
@@ -35,6 +38,24 @@ class MailboxManager:
 
     Atomic writes (write tmp then rename) prevent partial reads.
     """
+
+    _LEADER_WAKE_PREFIXES = (
+        "All tasks completed.",
+        "FINAL:",
+        "RISK REPORT:",
+        "Need help:",
+        "MEMO:",
+        "SECURITY:",
+        "PERFORMANCE:",
+        "ARCHITECTURE:",
+        "SYSTEMS:",
+        "DELIVERY:",
+        "RISK:",
+        "LITERATURE:",
+        "METHODOLOGY:",
+        "RESULTS:",
+        "SIGNAL:",
+    )
 
     def __init__(self, team_name: str, transport: Transport | None = None):
         self.team_name = team_name
@@ -85,6 +106,7 @@ class MailboxManager:
         plan: str | None = None,
         last_task: str | None = None,
         status: str | None = None,
+        wake_leader: bool = True,
     ) -> TeamMessage:
         from clawteam.team.manager import TeamManager
 
@@ -112,6 +134,8 @@ class MailboxManager:
         data = msg.model_dump_json(indent=2, by_alias=True, exclude_none=True).encode("utf-8")
         self._transport.deliver(delivery_target, data)
         self._log_event(msg)
+        if wake_leader:
+            self._maybe_wake_leader(msg)
         return msg
 
     def broadcast(
@@ -164,3 +188,95 @@ class MailboxManager:
 
     def peek_count(self, agent_name: str) -> int:
         return self._transport.count(agent_name)
+
+    def _maybe_wake_leader(self, msg: TeamMessage) -> None:
+        """Best-effort wake-up for an idle leader when a key team message arrives.
+
+        Minimal fix for template-based swarms where the leader finishes one turn,
+        goes idle, and never resumes to consume later inbox messages.
+        """
+        try:
+            if msg.type != MessageType.message:
+                return
+            if not msg.to:
+                return
+            content = (msg.content or "").strip()
+            if not content:
+                return
+            if not any(content.startswith(prefix) for prefix in self._LEADER_WAKE_PREFIXES):
+                return
+
+            from clawteam.spawn.registry import is_agent_alive
+            from clawteam.team.manager import TeamManager
+            from clawteam.team.tasks import TaskStore
+
+            leader_name = TeamManager.get_leader_name(self.team_name)
+            if not leader_name or msg.to != leader_name:
+                return
+            if msg.from_agent == leader_name:
+                return
+
+            # Wake only when the leader still has unfinished owned work.
+            ts = TaskStore(self.team_name)
+            leader_tasks = [
+                t for t in ts.list_tasks(owner=leader_name)
+                if t.status != "completed"
+            ]
+            if not leader_tasks:
+                return
+
+            prompt = (
+                f"New inbox message(s) have arrived for {leader_name} in team {self.team_name}. "
+                f"Resume coordination now: read pending inbox messages addressed to {leader_name}, "
+                f"continue the active leader task(s), and if your final synthesis is ready, "
+                f"send the final summary to {leader_name} via 'clawteam inbox send {self.team_name} {leader_name} \"FINAL: <summary>\"' "
+                f"and mark the relevant task(s) completed via 'clawteam task update {self.team_name} <task-id> --status completed'."
+            )
+
+            from clawteam.spawn.sessions import SessionStore
+            session_store = SessionStore(self.team_name)
+            session = session_store.load(leader_name)
+            if session and session.session_id:
+                result = subprocess.run(
+                    [
+                        "openclaw",
+                        "agent",
+                        "--session-id",
+                        session.session_id,
+                        "--message",
+                        prompt,
+                        "--timeout",
+                        "120",
+                        "--json",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                if result.returncode == 0:
+                    return
+
+            # If the leader has no reusable session, and is not currently active, spawn a new turn.
+            if is_agent_alive(self.team_name, leader_name):
+                return
+
+            clawteam_bin = os.environ.get("CLAWTEAM_BIN") or shutil.which("clawteam") or "clawteam"
+            subprocess.run(
+                [
+                    clawteam_bin,
+                    "spawn",
+                    "-t",
+                    self.team_name,
+                    "-n",
+                    leader_name,
+                    "--agent-type",
+                    "leader",
+                    "--task",
+                    prompt,
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        except Exception:
+            return
