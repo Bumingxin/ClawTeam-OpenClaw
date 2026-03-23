@@ -158,6 +158,10 @@ class TaskStore:
                 self._resolve_dependents_unlocked(task_id)
 
             self._save_unlocked(task)
+
+            if task.status == TaskStatus.completed:
+                self._maybe_release_team_runtime_unlocked()
+
             return task
 
     def _acquire_lock(self, task: TaskItem, caller: str, force: bool) -> None:
