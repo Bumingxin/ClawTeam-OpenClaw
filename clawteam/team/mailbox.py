@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import shlex
 import shutil
 import subprocess
 import time
@@ -39,7 +40,7 @@ class MailboxManager:
     Atomic writes (write tmp then rename) prevent partial reads.
     """
 
-    _LEADER_WAKE_PREFIXES = (
+    _RESUME_TRIGGER_PREFIXES = (
         "All tasks completed.",
         "FINAL:",
         "RISK REPORT:",
@@ -190,9 +191,9 @@ class MailboxManager:
         return self._transport.count(agent_name)
 
     def _maybe_wake_leader(self, msg: TeamMessage) -> None:
-        """Best-effort wake-up for an idle leader when a key team message arrives.
+        """Best-effort resume for an idle inbox-driven agent when a key team message arrives.
 
-        Minimal fix for template-based swarms where the leader finishes one turn,
+        Generalized fix for template-based swarms where an agent finishes one turn,
         goes idle, and never resumes to consume later inbox messages.
         """
         try:
@@ -203,39 +204,36 @@ class MailboxManager:
             content = (msg.content or "").strip()
             if not content:
                 return
-            if not any(content.startswith(prefix) for prefix in self._LEADER_WAKE_PREFIXES):
+            if not any(content.startswith(prefix) for prefix in self._RESUME_TRIGGER_PREFIXES):
                 return
 
             from clawteam.spawn.registry import is_agent_alive
-            from clawteam.team.manager import TeamManager
             from clawteam.team.tasks import TaskStore
 
-            leader_name = TeamManager.get_leader_name(self.team_name)
-            if not leader_name or msg.to != leader_name:
-                return
-            if msg.from_agent == leader_name:
+            recipient = msg.to
+            if msg.from_agent == recipient:
                 return
 
-            # Wake only when the leader still has unfinished owned work.
+            # Resume only when the recipient still has unfinished owned work.
             ts = TaskStore(self.team_name)
-            leader_tasks = [
-                t for t in ts.list_tasks(owner=leader_name)
+            recipient_tasks = [
+                t for t in ts.list_tasks(owner=recipient)
                 if t.status != "completed"
             ]
-            if not leader_tasks:
+            if not recipient_tasks:
                 return
 
             prompt = (
-                f"New inbox message(s) have arrived for {leader_name} in team {self.team_name}. "
-                f"Resume coordination now: read pending inbox messages addressed to {leader_name}, "
-                f"continue the active leader task(s), and if your final synthesis is ready, "
-                f"send the final summary to {leader_name} via 'clawteam inbox send {self.team_name} {leader_name} \"FINAL: <summary>\"' "
-                f"and mark the relevant task(s) completed via 'clawteam task update {self.team_name} <task-id> --status completed'."
+                f"New inbox message(s) have arrived for {recipient} in team {self.team_name}. "
+                f"Resume now: read pending inbox messages addressed to {recipient}, "
+                f"continue your active task(s), and if your work is complete, "
+                f"send any required summary/report to the appropriate teammate and mark the relevant task(s) completed via "
+                f"'clawteam task update {self.team_name} <task-id> --status completed'."
             )
 
             from clawteam.spawn.sessions import SessionStore
             session_store = SessionStore(self.team_name)
-            session = session_store.load(leader_name)
+            session = session_store.load(recipient)
             if session and session.session_id:
                 result = subprocess.run(
                     [
@@ -256,8 +254,16 @@ class MailboxManager:
                 if result.returncode == 0:
                     return
 
-            # If the leader has no reusable session, and is not currently active, spawn a new turn.
-            if is_agent_alive(self.team_name, leader_name):
+            # If the recipient has no reusable session but has an idle tmux-backed TUI,
+            # inject a fresh user turn directly into that pane.
+            if is_agent_alive(self.team_name, recipient):
+                from clawteam.spawn.registry import get_registry
+                info = get_registry(self.team_name).get(recipient, {})
+                tmux_target = info.get("tmux_target", "")
+                if tmux_target:
+                    injected = self._inject_tmux_resume(tmux_target, prompt)
+                    if injected:
+                        return
                 return
 
             clawteam_bin = os.environ.get("CLAWTEAM_BIN") or shutil.which("clawteam") or "clawteam"
@@ -268,9 +274,9 @@ class MailboxManager:
                     "-t",
                     self.team_name,
                     "-n",
-                    leader_name,
+                    recipient,
                     "--agent-type",
-                    "leader",
+                    "member",
                     "--task",
                     prompt,
                 ],
@@ -280,3 +286,20 @@ class MailboxManager:
             )
         except Exception:
             return
+
+    def _inject_tmux_resume(self, tmux_target: str, prompt: str) -> bool:
+        """Best-effort tmux injection for an alive-but-idle TUI agent.
+
+        We send Escape/Ctrl-C to clear any partial input, paste the new prompt,
+        and submit a fresh turn. This is a local fallback for agents that do not
+        have a reusable saved session yet.
+        """
+        try:
+            subprocess.run(["tmux", "send-keys", "-t", tmux_target, "Escape"], check=False)
+            subprocess.run(["tmux", "send-keys", "-t", tmux_target, "C-c"], check=False)
+            subprocess.run(["tmux", "set-buffer", "--", prompt], check=False)
+            subprocess.run(["tmux", "paste-buffer", "-t", tmux_target], check=False)
+            subprocess.run(["tmux", "send-keys", "-t", tmux_target, "Enter"], check=False)
+            return True
+        except Exception:
+            return False

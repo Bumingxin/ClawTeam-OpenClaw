@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project generally follows semantic versioning in spirit, even when release tags are still evolving.
 
+## [0.3.5] - 2026-03-23
+
+### Added
+- Added local release-note draft for the agent resume / idle-TUI recovery fix.
+- Added a detail-page-specific Team hero layout: current team highlighted as a large primary card, with other teams shown as compact cards on the right.
+
+### Changed
+- Web UI now uses a more fluid, browser-width-aware layout instead of being constrained to a fixed central width.
+- Detail page top area now separates the selected team from other teams to improve command-center readability on wide screens and LED displays.
+- Message timestamps in the dashboard now render using browser-local time instead of slicing raw ISO strings.
+
+### Fixed
+- Fixed a critical coordination issue where inbox-driven agents (including leader and aggregator roles like `risk-manager`) could go idle and fail to resume when later messages arrived.
+- Fixed the case where an agent could be alive in tmux/OpenClaw TUI but practically stalled; added layered recovery via saved-session resume and tmux prompt injection fallback.
+- Fixed detail-page rendering breakage caused by missing style definitions for the new Team hero component.
+- Fixed stray HTML tail fragments that could render literal garbage characters at the bottom of the dashboard.
+- Fixed dashboard task columns to stay on a single row instead of wrapping when the browser is resized.
+- Fixed message stream timestamps to respect the browser's local timezone.
+- Reduced over-aggressive vertical min-height behavior that created large empty gaps in overview/detail pages.
+
 ## [0.3.4] - 2026-03-22
 
 ### Added

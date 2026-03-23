@@ -118,8 +118,16 @@
 <script type="text/babel">
 const { useState, useEffect, useRef, useMemo } = React;
 
+const viewport = {
+  w: typeof window !== 'undefined' ? window.innerWidth : 1600,
+  h: typeof window !== 'undefined' ? window.innerHeight : 900,
+};
+const isNarrow = viewport.w < 1180;
+const isTablet = viewport.w < 1480;
+const isUltraWide = viewport.w > 2400;
+
 const S = {
-  shell: { maxWidth: 1600, margin: '0 auto', padding: '24px 24px 34px' },
+  shell: { width: '100%', maxWidth: '100vw', margin: '0', padding: 'clamp(10px, 0.9vw, 18px) clamp(12px, 1.2vw, 24px) clamp(16px, 1.5vw, 28px)' },
   topbar: {
     position: 'sticky', top: 0, zIndex: 100,
     background: 'rgba(4, 11, 21, 0.76)',
@@ -129,8 +137,8 @@ const S = {
     boxShadow: '0 10px 26px rgba(0,0,0,0.24)'
   },
   topInner: {
-    maxWidth: 1600, margin: '0 auto', padding: '16px 24px',
-    display: 'grid', gridTemplateColumns: '360px 1fr 430px', gap: 18, alignItems: 'center'
+    width: '100%', maxWidth: '100vw', margin: '0', padding: 'clamp(10px, 0.9vw, 14px) clamp(12px, 1.2vw, 24px)',
+    display: 'grid', gridTemplateColumns: isNarrow ? '1fr' : (isTablet ? 'minmax(240px, 1fr) minmax(0, 1fr)' : 'minmax(260px, 24vw) minmax(0, 1fr) minmax(300px, 30vw)'), gap: 14, alignItems: 'center'
   },
   teamControl: {
     display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 132px', gap: 10, alignItems: 'center'
@@ -196,7 +204,7 @@ const S = {
     background: primary ? 'linear-gradient(180deg, rgba(20,64,110,0.95), rgba(12,40,70,0.98))' : 'rgba(255,255,255,0.04)',
     color: 'var(--text)', fontSize: 13, fontWeight: 700, cursor: 'pointer'
   }),
-  summaryGrid: { display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 14, marginTop: 22, marginBottom: 22 },
+  summaryGrid: { display: 'grid', gridTemplateColumns: isUltraWide ? 'repeat(6, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginTop: 14, marginBottom: 14 },
   summaryCard: color => ({
     background: 'var(--panel2)', border: `1px solid ${color}33`, borderRadius: 18,
     padding: '18px 18px', minHeight: 132, boxShadow: `0 0 0 1px ${color}12 inset, 0 16px 34px rgba(0,0,0,0.26), 0 0 20px ${color}10`,
@@ -212,7 +220,7 @@ const S = {
   sectionHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', borderBottom: '1px solid rgba(89,169,255,0.10)', background: 'linear-gradient(180deg, rgba(255,255,255,0.03), transparent)' },
   sectionTitle: { fontSize: 14, fontWeight: 800, letterSpacing: '0.03em' },
   sectionSub: { fontSize: 12, color: 'var(--text-tertiary)' },
-  cockpit: { display: 'grid', gridTemplateColumns: '320px minmax(0, 1fr) 390px', gap: 16, alignItems: 'start' },
+  cockpit: { display: 'grid', gridTemplateColumns: isNarrow ? '1fr' : (isTablet ? 'minmax(260px, 0.9fr) minmax(0, 1.1fr)' : 'minmax(260px, 20vw) minmax(0, 1fr) minmax(300px, 26vw)'), gap: 14, alignItems: 'start' },
   membersWrap: { padding: 14 },
   memberCard: {
     background: 'linear-gradient(180deg, rgba(12,30,52,0.78), rgba(8,19,34,0.88))',
@@ -241,7 +249,7 @@ const S = {
   kanban: { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 12 },
   col: {
     background: 'linear-gradient(180deg, rgba(5,14,25,0.72), rgba(7,15,27,0.82))',
-    border: '1px solid rgba(89,169,255,0.10)', borderRadius: 16, overflow: 'hidden', minHeight: 430,
+    border: '1px solid rgba(89,169,255,0.10)', borderRadius: 16, overflow: 'hidden', minHeight: isNarrow ? 220 : 240,
     boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.02)'
   },
   colHead: color => ({ padding: '14px', borderBottom: `2px solid ${color}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'linear-gradient(180deg, rgba(255,255,255,0.03), transparent)' }),
@@ -277,11 +285,23 @@ const S = {
   msgMeta: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, fontSize: 11, color: 'var(--text-tertiary)' },
   msgType: color => ({ padding: '3px 6px', borderRadius: 8, background: `${color}18`, border: `1px solid ${color}22`, color }),
   msgBody: { fontSize: 12.5, lineHeight: 1.58, color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
-  heroEmpty: { maxWidth: 1600, margin: '0 auto', padding: '140px 24px', textAlign: 'center' },
+  heroEmpty: { width: '100%', maxWidth: '100vw', margin: '0', padding: 'min(18vh, 140px) clamp(14px, 1.4vw, 28px)', textAlign: 'center' },
   heroTitle: { fontSize: 56, fontWeight: 800, letterSpacing: '-0.05em' },
   heroSub: { fontSize: 16, color: 'var(--text-tertiary)', marginTop: 12 },
   overviewWrap: { marginBottom: 18 },
-  overviewTopGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 12, padding: 14 },
+  overviewTopGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12, padding: 14 },
+  detailHeroWrap: { display: 'grid', gridTemplateColumns: isNarrow ? '1fr' : '25% 75%', gap: 14, padding: 14, alignItems: 'stretch' },
+  detailHeroSidebar: { display: 'grid', gridTemplateColumns: isNarrow ? '1fr' : 'repeat(3, minmax(0, 1fr))', gridTemplateRows: isNarrow ? 'auto' : 'repeat(2, minmax(0, 1fr))', gap: 10, alignContent: 'start' },
+  detailHeroMain: status => ({
+    background: 'linear-gradient(180deg, rgba(14,40,70,0.96), rgba(8,23,40,0.98))',
+    border: status === 'blocked' ? '1px solid rgba(255,93,116,0.28)' : '1px solid rgba(88,213,255,0.30)',
+    borderRadius: 18, padding: '18px 18px 16px', minHeight: isNarrow ? 'auto' : 196, boxShadow: status === 'blocked' ? '0 0 22px rgba(255,93,116,0.10)' : '0 0 24px rgba(88,213,255,0.16)'
+  }),
+  detailHeroMini: status => ({
+    background: 'linear-gradient(180deg, rgba(10,28,48,0.92), rgba(7,18,31,0.96))',
+    border: status === 'blocked' ? '1px solid rgba(255,93,116,0.20)' : status === 'running' ? '1px solid rgba(89,169,255,0.18)' : '1px solid rgba(255,255,255,0.08)',
+    borderRadius: 14, padding: '12px 12px 10px', minHeight: isNarrow ? 'auto' : 93, cursor: 'pointer'
+  }),
   teamHeroCard: status => ({
     background: 'linear-gradient(180deg, rgba(12,31,52,0.84), rgba(8,19,34,0.94))',
     border: status === 'blocked' ? '1px solid rgba(255,93,116,0.26)' : status === 'running' ? '1px solid rgba(89,169,255,0.22)' : '1px solid rgba(89,169,255,0.10)',
@@ -296,14 +316,14 @@ const S = {
     background: status === 'blocked' ? 'rgba(255,93,116,0.10)' : status === 'running' ? 'rgba(89,169,255,0.10)' : status === 'completed' ? 'rgba(48,212,139,0.10)' : 'rgba(255,255,255,0.05)',
     border: '1px solid rgba(255,255,255,0.08)'
   }),
-  teamMiniGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginTop: 14 },
+  teamMiniGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(88px, 1fr))', gap: 8, marginTop: 14 },
   teamMiniItem: { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10, padding: '10px 8px', textAlign: 'center' },
   teamMiniValue: { fontSize: 18, fontWeight: 800 },
   teamMiniLabel: { fontSize: 10, color: 'var(--text-tertiary)', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.08em' },
   teamMetaRow: { display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 12, fontSize: 12, color: 'var(--text-secondary)' },
   teamListWrap: { padding: '0 14px 14px' },
-  teamRow: { display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) 100px 120px 90px 80px 80px 80px 80px', gap: 10, alignItems: 'center', padding: '12px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', marginTop: 10, cursor: 'pointer' },
-  teamRowHead: { display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) 100px 120px 90px 80px 80px 80px 80px', gap: 10, padding: '0 14px', fontSize: 11, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em' },
+  teamRow: { display: 'grid', gridTemplateColumns: 'minmax(220px, 1.8fr) repeat(7, minmax(72px, 0.7fr))', gap: 10, alignItems: 'center', padding: '12px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', marginTop: 10, cursor: 'pointer' },
+  teamRowHead: { display: 'grid', gridTemplateColumns: 'minmax(220px, 1.8fr) repeat(7, minmax(72px, 0.7fr))', gap: 10, padding: '0 14px', fontSize: 11, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em' },
 };
 
 function statusTone(type, content='') {
@@ -419,6 +439,67 @@ function TeamOverview({ teams, onSelect, settings }) {
   );
 }
 
+function DetailTeamHero({ teams, currentTeam, onSelect }) {
+  const rank = s => {
+    if (s === 'running') return 1;
+    if (s === 'completed') return 2;
+    return 0;
+  };
+  const current = teams.find(t => t.name === currentTeam) || teams[0];
+  if (!current) return null;
+  const others = teams
+    .filter(t => t.name !== current.name)
+    .sort((a, b) => {
+      const byStatus = rank(a.status) - rank(b.status);
+      if (byStatus !== 0) return byStatus;
+      return (a.name || '').localeCompare(b.name || '');
+    })
+    .slice(0, 6);
+
+  const statusText = s => s === 'blocked' ? '已阻塞' : s === 'running' ? '执行中' : s === 'completed' ? '已完成' : '未执行';
+
+  return (
+    <SectionChrome title="总看板" sub="当前 Team 突出显示，其他 Team 缩略排列" right={`共 ${teams.length} 个 Team`}>
+      <div style={S.detailHeroWrap}>
+        <div style={S.detailHeroMain(current.status)}>
+          <div style={S.teamHeroHead}>
+            <div style={{...S.teamHeroName, fontSize: 24}}>{current.name}</div>
+            <span style={S.teamStatusPill(current.status)}>{statusText(current.status)}</span>
+          </div>
+          <div style={{...S.teamHeroDesc, fontSize: 13, marginTop: 8}}>{zhTeamDescription(current.description, current.name)}</div>
+          <div style={{...S.teamMiniGrid, marginTop: 16, gridTemplateColumns: 'repeat(4, minmax(0, 1fr))'}}>
+            <div style={S.teamMiniItem}><div style={S.teamMiniValue}>{current.taskSummary?.pending || 0}</div><div style={S.teamMiniLabel}>待处理</div></div>
+            <div style={S.teamMiniItem}><div style={S.teamMiniValue}>{current.taskSummary?.in_progress || 0}</div><div style={S.teamMiniLabel}>进行中</div></div>
+            <div style={S.teamMiniItem}><div style={S.teamMiniValue}>{current.taskSummary?.completed || 0}</div><div style={S.teamMiniLabel}>已完成</div></div>
+            <div style={S.teamMiniItem}><div style={S.teamMiniValue}>{current.pendingMessages || 0}</div><div style={S.teamMiniLabel}>消息</div></div>
+          </div>
+          <div style={S.teamMetaRow}>
+            <span>负责人：{current.leader || '—'}</span>
+            <span>成员：{current.members}</span>
+          </div>
+        </div>
+        <div style={S.detailHeroSidebar}>
+          {others.map(t => (
+            <div key={t.name} style={S.detailHeroMini(t.status)} onClick={() => onSelect(t.name)}>
+              <div style={S.teamHeroHead}>
+                <div style={{...S.teamHeroName, fontSize: 13}}>{t.name}</div>
+                <span style={S.teamStatusPill(t.status)}>{statusText(t.status)}</span>
+              </div>
+              <div style={{...S.teamHeroDesc, marginTop: 4}}>{zhTeamDescription(t.description, t.name)}</div>
+              <div style={{...S.teamMiniGrid, marginTop: 10, gridTemplateColumns: 'repeat(4, minmax(0, 1fr))'}}>
+                <div style={S.teamMiniItem}><div style={S.teamMiniValue}>{t.taskSummary?.pending || 0}</div><div style={S.teamMiniLabel}>待处理</div></div>
+                <div style={S.teamMiniItem}><div style={S.teamMiniValue}>{t.taskSummary?.in_progress || 0}</div><div style={S.teamMiniLabel}>进行中</div></div>
+                <div style={S.teamMiniItem}><div style={S.teamMiniValue}>{t.taskSummary?.completed || 0}</div><div style={S.teamMiniLabel}>已完成</div></div>
+                <div style={S.teamMiniItem}><div style={S.teamMiniValue}>{t.pendingMessages || 0}</div><div style={S.teamMiniLabel}>消息</div></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </SectionChrome>
+  );
+}
+
 function SectionChrome({ title, sub, right, children }) {
   return (
     <div style={S.section}>
@@ -504,12 +585,22 @@ function TaskBoard({ tasks }) {
 
 function MessagesPanel({ messages }) {
   const sorted = useMemo(() => [...messages].sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || '')), [messages]);
+  const formatTimestamp = (ts) => {
+    if (!ts) return '';
+    const d = new Date(ts);
+    if (Number.isNaN(d.getTime())) return ts;
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mi = String(d.getMinutes()).padStart(2, '0');
+    const ss = String(d.getSeconds()).padStart(2, '0');
+    return `${mm}-${dd} ${hh}:${mi}:${ss}`;
+  };
   return (
     <SectionChrome title="消息流" sub="最近回执、同步与协作消息" right={`${messages.length} 条`}>
       <div style={S.messagesWrap}>
         {sorted.length === 0 ? <div style={S.empty}>暂无消息</div> : sorted.map((msg, i) => {
-          const time = (msg.timestamp || '').slice(11, 19);
-          const date = (msg.timestamp || '').slice(5, 10);
+          const when = formatTimestamp(msg.timestamp);
           const tone = statusTone(msg.type, msg.content);
           return (
             <div key={i} style={{...S.msgCard, ...(tone.important ? S.msgImportant : {}), ...(tone.danger ? S.msgDanger : {})}}>
@@ -518,7 +609,7 @@ function MessagesPanel({ messages }) {
                 <span>{msg.from || ''}</span>
                 <span style={{opacity:0.7}}>→</span>
                 <span>{msg.to || ''}</span>
-                <span style={{marginLeft:'auto'}}>{date} {time}</span>
+                <span style={{marginLeft:'auto'}}>{when}</span>
               </div>
               <div style={S.msgBody}>{msg.content || ''}</div>
             </div>
@@ -534,7 +625,7 @@ function Dashboard({ data, connected, refreshedAt, teams, onSelectTeam, settings
   return (
     <div style={S.shell}>
       <SummaryCards taskSummary={taskSummary} members={members} team={team} connected={connected} messages={messages} />
-      <TeamOverview teams={teams} onSelect={onSelectTeam} settings={settings} />
+      <DetailTeamHero teams={teams} currentTeam={team?.name} onSelect={onSelectTeam} />
       <div style={S.cockpit}>
         <MembersPanel members={members} />
         <TaskBoard tasks={tasks} />
