@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project generally follows semantic versioning in spirit, even when release tags are still evolving.
 
+## [0.3.6] - 2026-03-23
+
+### Added
+- Added Simplified Chinese-first coordination defaults for ClawTeam message flow, so internal inbox/event-stream summaries now prefer Chinese by default instead of English.
+- Added Chinese resume-trigger prefixes in mailbox handling, including messages such as `任务已完成：`, `最终汇总：`, `风险报告：`, `需要协助：` and other common specialist summary labels.
+- Added duplicate-spawn protection for tmux-backed agents so the same team/agent pair is not launched repeatedly when an active runtime already exists.
+
+### Changed
+- Team runtime cleanup now distinguishes more clearly between **releasing runtime** and **deleting team data**: when a team fully completes, tmux/OpenClaw runtime is released immediately while task/team data remains available for review until explicit cleanup.
+- Default coordination guidance for spawned agents now explicitly instructs them to use Simplified Chinese for internal collaboration messages unless the user requests another language.
+- Common OpenClaw-facing templates (`hedge-fund`, `strategy-room`, `code-review`, `research-paper`) now use Chinese-first message examples for specialist summaries and final handoff messages.
+
+### Fixed
+- Fixed the issue where `team cleanup` could delete ClawTeam data directories but leave `tmux` / `openclaw-tui` runtime processes behind.
+- Fixed the issue where a team could reach full `completed` task state but still keep its tmux session alive because runtime-release logic was only attached to dependency-unblock paths.
+- Fixed the issue where the same agent could be spawned multiple times into duplicate tmux windows during wake/resume races.
+- Fixed the issue where message flow in the dashboard remained English-heavy even after the Web UI itself had been localized to Simplified Chinese.
+
 ## [0.3.5] - 2026-03-23
 
 ### Added
