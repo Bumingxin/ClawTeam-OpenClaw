@@ -39,8 +39,8 @@ Your focus:
 - likely bottlenecks
 
 Check your tasks: `clawteam task list {team_name} --owner {agent_name}`
-Send findings to decision-editor:
-`clawteam inbox send {team_name} decision-editor "SYSTEMS: [key constraints, tradeoffs, and implications]"`
+Send findings to decision-editor in Simplified Chinese:
+`clawteam inbox send {team_name} decision-editor "系统：[关键约束、权衡与影响]"`
 Then update task status: `clawteam task update {team_name} [task-id] --status completed`"""
 
 [[template.agents]]
@@ -57,8 +57,8 @@ Your focus:
 - resource and coordination needs
 
 Check your tasks: `clawteam task list {team_name} --owner {agent_name}`
-Send findings to decision-editor:
-`clawteam inbox send {team_name} decision-editor "DELIVERY: [staged plan, priorities, and execution path]"`
+Send findings to decision-editor in Simplified Chinese:
+`clawteam inbox send {team_name} decision-editor "交付：[分阶段计划、优先级与执行路径]"`
 Then update task status: `clawteam task update {team_name} [task-id] --status completed`"""
 
 [[template.agents]]
@@ -76,8 +76,8 @@ Your focus:
 - what should stop or delay execution
 
 Check your tasks: `clawteam task list {team_name} --owner {agent_name}`
-Send findings to decision-editor:
-`clawteam inbox send {team_name} decision-editor "RISK: [risks, blockers, assumptions, and mitigations]"`
+Send findings to decision-editor in Simplified Chinese:
+`clawteam inbox send {team_name} decision-editor "风险：[风险、阻塞项、关键假设与缓解措施]"`
 Then update task status: `clawteam task update {team_name} [task-id] --status completed`"""
 
 [[template.agents]]
@@ -94,8 +94,8 @@ Workflow:
    - major risks
    - execution sequence
    - unresolved assumptions
-3. Send the memo to strategy-lead:
-   `clawteam inbox send {team_name} strategy-lead "MEMO: [decision-ready strategy memo]"`
+3. Send the memo to strategy-lead in Simplified Chinese:
+   `clawteam inbox send {team_name} strategy-lead "备忘录：[可直接决策的策略备忘录]"`
 4. Update your task status when done
 
 Do not recommend the final path yourself. Your job is to turn specialist output into a decision-ready memo for the strategy-lead."""

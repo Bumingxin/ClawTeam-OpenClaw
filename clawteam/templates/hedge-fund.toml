@@ -34,8 +34,8 @@ Your analysis framework:
 - Book value growth: CAGR and consistency
 
 Check your tasks: `clawteam task list {team_name} --owner {agent_name}`
-When done, send results to risk-manager:
-`clawteam inbox send {team_name} risk-manager "SIGNAL: [bullish|bearish|neutral] | CONFIDENCE: [0-100] | REASONING: [your analysis]"`
+When done, send results to risk-manager in Simplified Chinese:
+`clawteam inbox send {team_name} risk-manager "信号：[看多|中性|看空]｜置信度：[0-100]｜分析理由：[你的分析]"`
 Then update task status: `clawteam task update {team_name} [task-id] --status completed`"""
 
 [[template.agents]]
@@ -52,8 +52,8 @@ Your analysis framework:
 - Management vision and execution
 
 Check your tasks: `clawteam task list {team_name} --owner {agent_name}`
-When done, send results to risk-manager:
-`clawteam inbox send {team_name} risk-manager "SIGNAL: [bullish|bearish|neutral] | CONFIDENCE: [0-100] | REASONING: [your analysis]"`
+When done, send results to risk-manager in Simplified Chinese:
+`clawteam inbox send {team_name} risk-manager "信号：[看多|中性|看空]｜置信度：[0-100]｜分析理由：[你的分析]"`
 Then update task status: `clawteam task update {team_name} [task-id] --status completed`"""
 
 [[template.agents]]
@@ -70,8 +70,8 @@ Your analysis framework (weighted ensemble):
 - Statistical arbitrage (15%): Hurst exponent, skewness, kurtosis
 
 Check your tasks: `clawteam task list {team_name} --owner {agent_name}`
-When done, send results to risk-manager:
-`clawteam inbox send {team_name} risk-manager "SIGNAL: [bullish|bearish|neutral] | CONFIDENCE: [0-100] | REASONING: [your analysis]"`
+When done, send results to risk-manager in Simplified Chinese:
+`clawteam inbox send {team_name} risk-manager "信号：[看多|中性|看空]｜置信度：[0-100]｜分析理由：[你的分析]"`
 Then update task status: `clawteam task update {team_name} [task-id] --status completed`"""
 
 [[template.agents]]
@@ -89,8 +89,8 @@ Your analysis framework (4 dimensions):
 Signal = majority vote of 4 dimensions. Confidence = % of agreeing signals.
 
 Check your tasks: `clawteam task list {team_name} --owner {agent_name}`
-When done, send results to risk-manager:
-`clawteam inbox send {team_name} risk-manager "SIGNAL: [bullish|bearish|neutral] | CONFIDENCE: [0-100] | REASONING: [your analysis]"`
+When done, send results to risk-manager in Simplified Chinese:
+`clawteam inbox send {team_name} risk-manager "信号：[看多|中性|看空]｜置信度：[0-100]｜分析理由：[你的分析]"`
 Then update task status: `clawteam task update {team_name} [task-id] --status completed`"""
 
 [[template.agents]]
@@ -105,8 +105,8 @@ Your analysis framework:
 - Combined weighted signal with confidence score
 
 Check your tasks: `clawteam task list {team_name} --owner {agent_name}`
-When done, send results to risk-manager:
-`clawteam inbox send {team_name} risk-manager "SIGNAL: [bullish|bearish|neutral] | CONFIDENCE: [0-100] | REASONING: [your analysis]"`
+When done, send results to risk-manager in Simplified Chinese:
+`clawteam inbox send {team_name} risk-manager "信号：[看多|中性|看空]｜置信度：[0-100]｜分析理由：[你的分析]"`
 Then update task status: `clawteam task update {team_name} [task-id] --status completed`"""
 
 [[template.agents]]
@@ -122,8 +122,8 @@ Workflow:
    - Volatility-adjusted position limits (low vol: 25% max, high vol: 10% max)
    - Correlation adjustment (high correlation: reduce exposure)
    - Maximum position size per ticker
-4. Send consolidated risk report to portfolio-manager:
-   `clawteam inbox send {team_name} portfolio-manager "RISK REPORT: [consolidated analysis with position limits]"`
+4. Send consolidated risk report to portfolio-manager in Simplified Chinese:
+   `clawteam inbox send {team_name} portfolio-manager "风险报告：[综合判断、仓位约束与风险提示]"`
 5. Update your task status when done
 
 You MUST wait for all 5 analyst signals before sending your report."""
