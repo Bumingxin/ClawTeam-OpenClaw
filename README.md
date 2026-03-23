@@ -18,7 +18,7 @@
   <img src="https://img.shields.io/badge/python-≥3.10-blue?logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/agents-OpenClaw_%7C_Claude_Code_%7C_Codex_%7C_nanobot-blueviolet" alt="Agents">
   <img src="https://img.shields.io/badge/transport-File_%7C_ZeroMQ_P2P-orange" alt="Transport">
-  <img src="https://img.shields.io/badge/version-0.3.5-teal" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.3.7-teal" alt="Version">
 </p>
 
 > **Fork of [HKUDS/ClawTeam](https://github.com/HKUDS/ClawTeam)** with deep OpenClaw integration: default `openclaw` agent, per-agent session isolation, exec approval auto-config, and production-hardened spawn backends. All upstream fixes are synced.
@@ -29,14 +29,14 @@ Works with [OpenClaw](https://openclaw.ai) (default), [Claude Code](https://clau
 
 ---
 
-## What's new in v0.3.5
+## What's new in v0.3.7
 
-- Fixed a real-world idle-agent resume bug in OpenClaw-driven ClawTeam workflows
-- Added layered recovery for inbox-driven agents: saved-session resume, tmux idle-TUI injection fallback, then spawn fallback
-- Validated full automatic closure on a clean `hedge-fund` team run (all 7 tasks completed)
-- Improved dashboard behavior for wide screens / LED displays with a more fluid layout
-- Added a detail-page Team hero layout with a highlighted current team and compact side cards
-- Fixed local-time rendering for dashboard message timestamps
+- `clawteam spawn --task ...` now auto-creates a task card by default, so Web UI users immediately see task state without manually running `clawteam task create`
+- Added `--auto-task/--no-auto-task` to make this behavior explicit and controllable
+- Added initial `--model` / `--thinking` parameters to `clawteam spawn`
+- Added a safety guard for OpenClaw-backed spawns: if the current OpenClaw CLI cannot truly honor runtime model overrides, ClawTeam now fails explicitly instead of pretending model selection succeeded
+- Added model metadata propagation into team member identity / prompt context for future compatibility and debugging
+- Clarified the OpenClaw-first product rule: visible task cards in Web UI are now treated as a default workflow expectation, not an optional extra step
 
 ---
 

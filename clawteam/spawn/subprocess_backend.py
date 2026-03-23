@@ -28,6 +28,8 @@ class SubprocessBackend(SpawnBackend):
         env: dict[str, str] | None = None,
         cwd: str | None = None,
         skip_permissions: bool = False,
+        model: str | None = None,
+        thinking: str | None = None,
     ) -> str:
         spawn_env = os.environ.copy()
         clawteam_bin = resolve_clawteam_executable()
@@ -56,6 +58,11 @@ class SubprocessBackend(SpawnBackend):
 
         normalized_command = normalize_spawn_command(command)
 
+        if model:
+            spawn_env.setdefault("CLAWTEAM_MODEL", model)
+        if thinking:
+            spawn_env.setdefault("CLAWTEAM_THINKING", thinking)
+
         command_error = validate_spawn_command(normalized_command, path=spawn_env["PATH"], cwd=cwd)
         if command_error:
             return command_error
@@ -76,12 +83,23 @@ class SubprocessBackend(SpawnBackend):
                 # Codex accepts prompt as positional argument
                 final_command.append(prompt)
             elif _is_openclaw_command(normalized_command):
+                unsupported = []
+                if model:
+                    unsupported.append(f"model={model}")
+                if unsupported:
+                    return (
+                        "Error: current openclaw CLI does not support direct runtime overrides for "
+                        + ", ".join(unsupported)
+                        + ". Upgrade OpenClaw CLI or implement session-level model override integration before using these flags."
+                    )
                 # OpenClaw agent mode: use --message for the prompt
                 if "agent" not in final_command and "tui" not in final_command:
                     final_command.insert(1, "agent")
                 # Isolate each agent in its own session
                 session_key = f"clawteam-{team_name}-{agent_name}"
                 final_command.extend(["--session-id", session_key, "--message", prompt])
+                if thinking:
+                    final_command.extend(["--thinking", thinking])
             else:
                 final_command.extend(["-p", prompt])
 

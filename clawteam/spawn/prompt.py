@@ -17,6 +17,8 @@ def build_agent_prompt(
     user: str = "",
     workspace_dir: str = "",
     workspace_branch: str = "",
+    model_name: str = "",
+    thinking: str = "",
 ) -> str:
     """Build agent prompt: identity + task + optional workspace info."""
     lines = [
@@ -31,6 +33,10 @@ def build_agent_prompt(
         f"- Team: {team_name}",
         f"- Leader: {leader_name}",
     ])
+    if model_name:
+        lines.append(f"- Preferred Model: {model_name}")
+    if thinking:
+        lines.append(f"- Thinking Level: {thinking}")
     if workspace_dir:
         lines.extend([
             "",

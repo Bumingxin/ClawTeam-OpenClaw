@@ -1610,6 +1610,9 @@ def spawn_agent(
     agent_name: Optional[str] = typer.Option(None, "--agent-name", "-n", help="Agent name"),
     agent_type: str = typer.Option("general-purpose", "--agent-type", help="Agent type"),
     task: Optional[str] = typer.Option(None, "--task", help="Task to assign (becomes the agent's initial prompt)"),
+    model: Optional[str] = typer.Option(None, "--model", help="Preferred model for this agent"),
+    thinking: Optional[str] = typer.Option(None, "--thinking", help="Thinking level for this agent"),
+    auto_task: bool = typer.Option(True, "--auto-task/--no-auto-task", help="Automatically create a task card when --task is provided"),
     workspace: Optional[bool] = typer.Option(None, "--workspace/--no-workspace", "-w", help="Create isolated git worktree (default: auto)"),
     repo: Optional[str] = typer.Option(None, "--repo", help="Git repo path (default: cwd)"),
     skip_permissions: Optional[bool] = typer.Option(None, "--skip-permissions/--no-skip-permissions", help="Skip tool approval for claude (default: from config, true)"),
@@ -1621,6 +1624,7 @@ def spawn_agent(
     """
     from clawteam.config import get_effective
     from clawteam.spawn import get_backend
+    from clawteam.team.tasks import TaskStore
 
     # Resolve defaults from config
     if backend is None:
@@ -1628,6 +1632,10 @@ def spawn_agent(
         backend = backend or "tmux"
     if not command:
         command = ["openclaw"]
+
+    if model is None:
+        model_val, _ = get_effective("default_model")
+        model = model_val or None
 
     _team = team or "default"
     _name = agent_name or f"agent-{uuid.uuid4().hex[:6]}"
@@ -1688,6 +1696,8 @@ def spawn_agent(
             user=_os.environ.get("CLAWTEAM_USER", ""),
             workspace_dir=cwd or "",
             workspace_branch=ws_branch,
+            model_name=model or "",
+            thinking=thinking or "",
         )
 
     # Session resume: inject --resume flag for claude commands
@@ -1715,6 +1725,7 @@ def spawn_agent(
             agent_id=_id,
             agent_type=agent_type,
             user=_os2.environ.get("CLAWTEAM_USER", ""),
+            model_name=model or "",
         )
         member_added = True
     except ValueError:
@@ -1729,6 +1740,8 @@ def spawn_agent(
         prompt=prompt,
         cwd=cwd,
         skip_permissions=skip_permissions,
+        model=model,
+        thinking=thinking,
     )
 
     if result.startswith("Error"):
@@ -1741,6 +1754,26 @@ def spawn_agent(
                 pass
         _output({"error": result}, lambda d: console.print(f"[red]{d['error']}[/red]"))
         raise typer.Exit(1)
+
+    if task and auto_task:
+        try:
+            store = TaskStore(_team)
+            existing = [t for t in store.list_tasks(owner=_name) if t.subject == task]
+            if not existing:
+                store.create(
+                    subject=task,
+                    description=f"Auto-created by clawteam spawn for agent '{_name}'.",
+                    owner=_name,
+                    metadata={
+                        "auto_created": True,
+                        "agent_id": _id,
+                        "agent_type": agent_type,
+                        "model": model or "",
+                        "thinking": thinking or "",
+                    },
+                )
+        except Exception:
+            pass
 
     _output(
         {"status": "spawned", "backend": backend, "agentName": _name, "agentId": _id, "message": result},
@@ -2277,6 +2310,8 @@ def launch_team(
             prompt=prompt,
             cwd=cwd,
             skip_permissions=_skip,
+            model="",
+            thinking="",
         )
         spawned.append({"name": agent.name, "id": a_id, "type": agent.type, "result": result})
 

@@ -31,6 +31,7 @@ class AgentIdentity:
     agent_name: str = "agent"
     user: str = ""
     agent_type: str = "general-purpose"
+    model: str = ""
     team_name: str | None = None
     is_leader: bool = False
     plan_mode_required: bool = False
@@ -51,6 +52,7 @@ class AgentIdentity:
             agent_name=_env("CLAWTEAM_AGENT_NAME", "CLAUDE_CODE_AGENT_NAME", "agent"),
             user=user,
             agent_type=_env("CLAWTEAM_AGENT_TYPE", "CLAUDE_CODE_AGENT_TYPE", "general-purpose"),
+            model=_env("CLAWTEAM_MODEL", "CLAUDE_CODE_MODEL", ""),
             team_name=_env("CLAWTEAM_TEAM_NAME", "CLAUDE_CODE_TEAM_NAME") or None,
             is_leader=_env_bool("CLAWTEAM_AGENT_LEADER", "CLAUDE_CODE_AGENT_LEADER"),
             plan_mode_required=_env_bool(
@@ -67,6 +69,8 @@ class AgentIdentity:
             "CLAWTEAM_AGENT_LEADER": "1" if self.is_leader else "0",
             "CLAWTEAM_PLAN_MODE_REQUIRED": "1" if self.plan_mode_required else "0",
         }
+        if self.model:
+            env["CLAWTEAM_MODEL"] = self.model
         if self.user:
             env["CLAWTEAM_USER"] = self.user
         if self.team_name:

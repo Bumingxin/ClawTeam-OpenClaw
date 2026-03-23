@@ -18,7 +18,7 @@
   <img src="https://img.shields.io/badge/python-≥3.10-blue?logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/agents-OpenClaw_%7C_Claude_Code_%7C_Codex_%7C_nanobot-blueviolet" alt="Agents">
   <img src="https://img.shields.io/badge/transport-File_%7C_ZeroMQ_P2P-orange" alt="Transport">
-  <img src="https://img.shields.io/badge/version-0.3.5-teal" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.3.7-teal" alt="Version">
 </p>
 
 > 这是一个基于 [HKUDS/ClawTeam](https://github.com/HKUDS/ClawTeam) 的分叉版本，针对 **OpenClaw** 做了深度适配：默认 `openclaw` 作为 agent、支持 per-agent session isolation、自动配置 exec approvals，并补充了更适合实际生产使用的 spawn backend 细节。
@@ -29,14 +29,14 @@
 
 ---
 
-## v0.3.5 更新内容
+## v0.3.7 更新内容
 
-- 修复了 OpenClaw 驱动的 ClawTeam 流程中，Agent 进入 idle 后无法被后续消息重新唤醒的问题
-- 为 inbox-driven Agent 增加分层恢复能力：优先恢复已保存 session，其次向 idle tmux/TUI 注入新 prompt，最后才回退为重新 spawn
-- 已在干净的 `hedge-fund` 模板队伍上验证自动闭环（7/7 任务完成）
-- 优化 Web UI 的大屏 / LED 显示效果，使布局更流式、更能铺满浏览器宽度
-- 为详情页新增当前 Team 大主卡 + 右侧缩略 Team 卡布局
-- 修复消息流时间未按浏览器本地时区显示的问题
+- `clawteam spawn --task ...` 现在默认会自动创建 task 卡片，Web UI 用户无需再手工执行 `clawteam task create`
+- 新增 `--auto-task/--no-auto-task`，使默认建卡行为可显式控制
+- 为 `clawteam spawn` 新增初始版 `--model` / `--thinking` 参数入口
+- 针对 OpenClaw 后端增加安全保护：当当前 OpenClaw CLI 无法真实支持运行时模型覆盖时，ClawTeam 会**明确报错**，不再伪装为“模型指定成功”
+- 将模型信息向 team member / identity / prompt 侧透传，便于未来兼容扩展与调试
+- 明确 OpenClaw-first 的产品规则：Web UI 可见 task 卡片属于默认工作流，而不是额外手动步骤
 
 ---
 

@@ -36,6 +36,8 @@ class TmuxBackend(SpawnBackend):
         env: dict[str, str] | None = None,
         cwd: str | None = None,
         skip_permissions: bool = False,
+        model: str | None = None,
+        thinking: str | None = None,
     ) -> str:
         if not shutil.which("tmux"):
             return "Error: tmux not installed"
@@ -99,6 +101,10 @@ class TmuxBackend(SpawnBackend):
         env_vars["PATH"] = build_spawn_path(env_vars.get("PATH", os.environ.get("PATH")))
         if os.path.isabs(clawteam_bin):
             env_vars.setdefault("CLAWTEAM_BIN", clawteam_bin)
+        if model:
+            env_vars.setdefault("CLAWTEAM_MODEL", model)
+        if thinking:
+            env_vars.setdefault("CLAWTEAM_THINKING", thinking)
 
         normalized_command = normalize_spawn_command(command)
 
@@ -118,6 +124,17 @@ class TmuxBackend(SpawnBackend):
 
         # OpenClaw TUI: pass --message for initial prompt and --session for isolation
         if _is_openclaw_command(normalized_command):
+            unsupported = []
+            if model:
+                unsupported.append(f"model={model}")
+            if thinking and "tui" in normalized_command:
+                unsupported.append(f"thinking={thinking}")
+            if unsupported:
+                return (
+                    "Error: current openclaw CLI does not support direct runtime overrides for "
+                    + ", ".join(unsupported)
+                    + ". Upgrade OpenClaw CLI or implement session-level model override integration before using these flags."
+                )
             session_key = f"clawteam-{team_name}-{agent_name}"
             if final_command[0].endswith("openclaw") and len(final_command) == 1:
                 final_command = [final_command[0], "tui", "--session", session_key]
@@ -130,6 +147,8 @@ class TmuxBackend(SpawnBackend):
             elif "agent" in final_command:
                 if prompt:
                     final_command.extend(["--message", prompt])
+                if thinking:
+                    final_command.extend(["--thinking", thinking])
 
         if _is_nanobot_command(normalized_command):
             if cwd and not _command_has_workspace_arg(normalized_command):

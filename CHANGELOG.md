@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project generally follows semantic versioning in spirit, even when release tags are still evolving.
 
+## [0.3.7] - 2026-03-23
+
+### Added
+- Added automatic task-card creation to `clawteam spawn` when `--task` is provided, so the Web UI and board can show work immediately without manual `task create` calls.
+- Added `--auto-task/--no-auto-task` to make the new default behavior explicit and overridable.
+- Added initial `--model` and `--thinking` parameters to `clawteam spawn` for future runtime-routing compatibility.
+- Added model metadata propagation into team member records, agent identity, and prompt context.
+
+### Changed
+- ClawTeam now treats visible task cards as a default OpenClaw-first workflow expectation instead of an operator memory step.
+- Spawn flow now resolves a configured default model from ClawTeam config when present.
+
+### Fixed
+- Fixed the product gap where `clawteam spawn --task ...` could successfully launch an agent but leave the Web UI with no visible task card.
+- Fixed the misleading behavior where a caller could believe a model override had been applied to an OpenClaw-backed agent when the current CLI could not actually support that runtime override.
+- OpenClaw-backed spawns now fail explicitly on unsupported direct runtime model override requests instead of producing a false-success path.
+
 ## [0.3.6] - 2026-03-23
 
 ### Added
