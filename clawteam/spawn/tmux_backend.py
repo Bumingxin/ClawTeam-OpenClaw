@@ -12,6 +12,7 @@ import time
 from clawteam.spawn.base import SpawnBackend
 from clawteam.spawn.cli_env import build_spawn_path, resolve_clawteam_executable
 from clawteam.spawn.command_validation import normalize_spawn_command, validate_spawn_command
+from clawteam.spawn.registry import get_registry, is_agent_alive, register_agent
 
 
 class TmuxBackend(SpawnBackend):
@@ -40,6 +41,41 @@ class TmuxBackend(SpawnBackend):
             return "Error: tmux not installed"
 
         session_name = f"clawteam-{team_name}"
+        target = f"{session_name}:{agent_name}"
+
+        # Prevent duplicate spawns for the same team/agent when an active tmux
+        # runtime already exists (common during resume/wake races).
+        alive = is_agent_alive(team_name, agent_name)
+        if alive is True:
+            return f"Agent '{agent_name}' already running in tmux ({target})"
+
+        # If registry is stale but the tmux window still exists and has a live pane,
+        # refresh registry and treat it as already running.
+        pane_check_existing = subprocess.run(
+            ["tmux", "list-panes", "-t", target, "-F", "#{pane_id} #{pane_pid} #{pane_dead}"],
+            capture_output=True,
+            text=True,
+        )
+        if pane_check_existing.returncode == 0 and pane_check_existing.stdout.strip():
+            first = pane_check_existing.stdout.strip().splitlines()[0].split()
+            pane_pid = 0
+            pane_dead = "0"
+            if len(first) >= 3:
+                try:
+                    pane_pid = int(first[1])
+                except ValueError:
+                    pane_pid = 0
+                pane_dead = first[2]
+            if pane_dead != "1":
+                register_agent(
+                    team_name=team_name,
+                    agent_name=agent_name,
+                    backend="tmux",
+                    tmux_target=target,
+                    pid=pane_pid,
+                    command=command,
+                )
+                return f"Agent '{agent_name}' already running in tmux ({target})"
         clawteam_bin = resolve_clawteam_executable()
         env_vars = {
             "CLAWTEAM_AGENT_ID": agent_id,
@@ -124,8 +160,6 @@ class TmuxBackend(SpawnBackend):
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-
-        target = f"{session_name}:{agent_name}"
 
         if check.returncode != 0:
             launch = subprocess.run(
@@ -226,7 +260,6 @@ class TmuxBackend(SpawnBackend):
                 pass
 
         # Persist spawn info for liveness checking
-        from clawteam.spawn.registry import register_agent
         register_agent(
             team_name=team_name,
             agent_name=agent_name,
