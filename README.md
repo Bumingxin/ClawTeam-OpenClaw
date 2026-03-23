@@ -32,7 +32,7 @@
   <img src="https://img.shields.io/badge/python-≥3.10-blue?logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/agents-OpenClaw_%7C_Claude_Code_%7C_Codex_%7C_nanobot-blueviolet" alt="Agents">
   <img src="https://img.shields.io/badge/transport-File_%7C_ZeroMQ_P2P-orange" alt="Transport">
-  <img src="https://img.shields.io/badge/version-0.3.0-teal" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.3.5-teal" alt="Version">
 </p>
 
 > **Fork of [HKUDS/ClawTeam](https://github.com/HKUDS/ClawTeam)** with deep OpenClaw integration: default `openclaw` agent, per-agent session isolation, exec approval auto-config, and production-hardened spawn backends. All upstream fixes are synced.
@@ -48,6 +48,17 @@ Works with [OpenClaw](https://openclaw.ai) (default), [Claude Code](https://clau
 - Task locking, process liveness checks, and signal registration are routed through a shared compatibility layer so unsupported Unix-only behavior degrades safely on Windows.
 - `board attach` still requires `tmux`, so on Windows prefer `clawteam board serve` for live monitoring.
 - If you want the original tmux workflow on Windows, run ClawTeam inside WSL.
+
+---
+
+## What's new in v0.3.5
+
+- Fixed a real-world idle-agent resume bug in OpenClaw-driven ClawTeam workflows
+- Added layered recovery for inbox-driven agents: saved-session resume, tmux idle-TUI injection fallback, then spawn fallback
+- Validated full automatic closure on a clean `hedge-fund` team run (all 7 tasks completed)
+- Improved dashboard behavior for wide screens / LED displays with a more fluid layout
+- Added a detail-page Team hero layout with a highlighted current team and compact side cards
+- Fixed local-time rendering for dashboard message timestamps
 
 ---
 
