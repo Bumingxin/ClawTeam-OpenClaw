@@ -360,7 +360,7 @@ clawteam inbox peek <team>
 clawteam board show <team>
 clawteam board live <team> --interval 3
 clawteam board attach <team>
-clawteam board serve --port 8080
+clawteam board serve --port 8090
 ```
 
 ---
