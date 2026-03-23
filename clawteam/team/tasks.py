@@ -302,11 +302,11 @@ class TaskStore:
 
             clawteam_bin = os.environ.get("CLAWTEAM_BIN") or shutil.which("clawteam") or "clawteam"
             prompt = (
-                f"Your synthesis task '{task.subject}' is now unblocked. "
-                f"Read pending inbox messages addressed to {leader_name} in team {self.team_name}, "
-                f"synthesize the completed worker findings into one concise final summary, "
-                f"send that summary back to {leader_name} via 'clawteam inbox send {self.team_name} {leader_name} \"FINAL: <summary>\"', "
-                f"then mark task {task.id} as in_progress and completed appropriately."
+                f"你的汇总任务《{task.subject}》现已解除阻塞。"
+                f"请读取 team {self.team_name} 中发给 {leader_name} 的待处理 inbox 消息，"
+                f"用简体中文将已完成的 worker 发现整合为一段最终汇总，"
+                f"并通过 'clawteam inbox send {self.team_name} {leader_name} \"最终汇总：<总结内容>\"' 发回给 {leader_name}；"
+                f"随后将任务 {task.id} 依次更新为 in_progress 和 completed。"
             )
             subprocess.run(
                 [
