@@ -90,7 +90,7 @@ Monitor the swarm from a tiled tmux view or Web UI. The leader handles coordinat
 ```bash
 clawteam board attach my-team
 # Or web dashboard
-clawteam board serve --port 8080
+clawteam board serve --port 8090
 ```
 
 </td>
