@@ -3,9 +3,20 @@
 from __future__ import annotations
 
 import shutil
+import subprocess
 
 from clawteam.team.mailbox import MailboxManager
 from clawteam.team.models import MessageType, get_data_dir
+
+
+def _kill_tmux_session(team_name: str) -> bool:
+    session_name = f"clawteam-{team_name}"
+    result = subprocess.run(
+        ["tmux", "kill-session", "-t", session_name],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    return result.returncode == 0
 
 
 class LifecycleManager:
@@ -80,12 +91,15 @@ class LifecycleManager:
 
     @staticmethod
     def cleanup_team(team_name: str) -> bool:
+        cleaned = _kill_tmux_session(team_name)
+
         # Best-effort cleanup of git workspaces
         try:
             from clawteam.workspace import get_workspace_manager
             ws_mgr = get_workspace_manager()
             if ws_mgr:
                 ws_mgr.cleanup_team(team_name)
+                cleaned = True or cleaned
         except Exception:
             pass
 
@@ -93,7 +107,7 @@ class LifecycleManager:
         tasks_dir = get_data_dir() / "tasks" / team_name
         costs_dir = get_data_dir() / "costs" / team_name
         sessions_dir = get_data_dir() / "sessions" / team_name
-        cleaned = False
+        cleaned = False if not cleaned else True
         for d in (team_dir, tasks_dir, costs_dir, sessions_dir):
             if d.exists():
                 shutil.rmtree(d)

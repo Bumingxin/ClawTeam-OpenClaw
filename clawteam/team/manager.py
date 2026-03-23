@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import shutil
+import subprocess
 from pathlib import Path
 
 from clawteam.team.models import TeamConfig, TeamMember, get_data_dir
@@ -43,6 +44,17 @@ def _save_config(config: TeamConfig) -> None:
         config.model_dump_json(indent=2, by_alias=True), encoding="utf-8"
     )
     tmp.rename(path)
+
+
+def _kill_tmux_session(team_name: str) -> bool:
+    """Best-effort kill of the tmux session backing a team."""
+    session_name = f"clawteam-{team_name}"
+    result = subprocess.run(
+        ["tmux", "kill-session", "-t", session_name],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    return result.returncode == 0
 
 
 class TeamManager:
@@ -173,12 +185,17 @@ class TeamManager:
 
     @staticmethod
     def cleanup(team_name: str) -> bool:
+        # Best-effort cleanup of tmux runtime first so completed teams release
+        # openclaw-tui/bash launcher processes immediately.
+        cleaned = _kill_tmux_session(team_name)
+
         # Best-effort cleanup of git workspaces before removing dirs
         try:
             from clawteam.workspace import get_workspace_manager
             ws_mgr = get_workspace_manager()
             if ws_mgr:
                 ws_mgr.cleanup_team(team_name)
+                cleaned = True or cleaned
         except Exception:
             pass
 
@@ -188,7 +205,6 @@ class TeamManager:
         costs_dir = get_data_dir() / "costs" / team_name
         sessions_dir = get_data_dir() / "sessions" / team_name
         plans_dir = team_plans_path(team_name)
-        cleaned = False
         for d in (team_dir, tasks_dir, costs_dir, sessions_dir, plans_dir):
             if d.exists():
                 shutil.rmtree(d)

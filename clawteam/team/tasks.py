@@ -279,6 +279,7 @@ class TaskStore:
                         self._maybe_trigger_leader_summary(task)
             except Exception:
                 continue
+        self._maybe_release_team_runtime_unlocked()
 
     def _maybe_trigger_leader_summary(self, task: TaskItem) -> None:
         """Auto-spawn the leader when a leader-owned blocked task becomes pending.
@@ -322,6 +323,30 @@ class TaskStore:
                 ],
                 capture_output=True,
                 text=True,
+                check=False,
+            )
+        except Exception:
+            return
+
+    def _maybe_release_team_runtime_unlocked(self) -> None:
+        """Release tmux/openclaw-tui runtime when a team has fully completed.
+
+        Important: this only releases runtime processes/sessions. It does NOT
+        delete task/team data, so results remain available for inspection,
+        reporting, and explicit later cleanup.
+        """
+        try:
+            tasks = self._list_tasks_unlocked()
+            if not tasks:
+                return
+            if any(t.status != TaskStatus.completed for t in tasks):
+                return
+
+            session_name = f"clawteam-{self.team_name}"
+            subprocess.run(
+                ["tmux", "kill-session", "-t", session_name],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
                 check=False,
             )
         except Exception:
