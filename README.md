@@ -530,7 +530,7 @@ clawteam inbox peek <team>                # read without consuming
 clawteam board show <team>                # terminal kanban
 clawteam board live <team> --interval 3   # auto-refresh
 clawteam board attach <team>              # tiled tmux view
-clawteam board serve --port 8080          # web UI
+clawteam board serve --port 8090          # web UI
 ```
 
 </details>
