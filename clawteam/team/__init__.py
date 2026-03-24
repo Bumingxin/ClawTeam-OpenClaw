@@ -1,5 +1,6 @@
 """Team coordination layer for multi-agent collaboration."""
 
+from clawteam.team.finalizer import TeamFinalizer
 from clawteam.team.lifecycle import LifecycleManager
 from clawteam.team.mailbox import MailboxManager
 from clawteam.team.manager import TeamManager
@@ -22,4 +23,5 @@ __all__ = [
     "PlanManager",
     "LifecycleManager",
     "InboxWatcher",
+    "TeamFinalizer",
 ]

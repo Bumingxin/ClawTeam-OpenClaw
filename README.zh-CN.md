@@ -343,6 +343,7 @@ clawteam task create <team> "subject" -o <owner> --blocked-by <id1>,<id2>
 clawteam task update <team> <id> --status completed
 clawteam task list <team>
 clawteam task wait <team> --timeout 300
+clawteam task wait <team> --final-report --reporter reviewer --takeover
 ```
 
 ### 消息
