@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project generally follows semantic versioning in spirit, even when release tags are still evolving.
 
+## [0.3.8] - 2026-03-24
+
+### Added
+- Added team finalization support via `clawteam task wait --final-report`, with reporter selection (`--reporter`) and optional timeout-safe takeover (`--takeover`).
+- Added a new `TeamFinalizer` module to persist final-report delivery state and prevent duplicate final report sends.
+- Added `--wait-final-report` support to `clawteam launch` so template workflows can run until task completion **and** final report delivery in one command.
+- Added finalizer-focused test coverage (`tests/test_finalizer.py`) for reporter and takeover paths.
+
+### Changed
+- Launch command output now includes an explicit “Wait final report” follow-up command for operational clarity.
+- Final report delivery semantics are now task-completion-aware: final report handling runs after all tasks are completed, not merely after partial inbox activity.
+
+### Fixed
+- Fixed the gap where teams could appear operationally complete but no guaranteed final report was ever delivered to the leader/user channel.
+- Fixed duplicate final-report risk by introducing idempotent final-report state tracking (`final_report.json`).
+
 ## [0.3.7] - 2026-03-23
 
 ### Added

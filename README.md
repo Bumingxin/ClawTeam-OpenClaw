@@ -518,6 +518,7 @@ clawteam task create <team> "subject" -o <owner> --blocked-by <id1>,<id2>
 clawteam task update <team> <id> --status completed   # auto-unblocks dependents
 clawteam task list <team> --status blocked --owner worker1
 clawteam task wait <team> --timeout 300
+clawteam task wait <team> --final-report --reporter reviewer --takeover
 
 # Messaging
 clawteam inbox send <team> <to> "message"

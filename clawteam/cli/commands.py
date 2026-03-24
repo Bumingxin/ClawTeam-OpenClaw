@@ -1105,8 +1105,16 @@ def task_wait(
     agent: Optional[str] = typer.Option(None, "--agent", "-a", help="Agent inbox to monitor (default: leader from team config)"),
     poll_interval: float = typer.Option(5.0, "--poll-interval", "-p", help="Seconds between polls"),
     timeout: Optional[float] = typer.Option(None, "--timeout", "-t", help="Max seconds to wait (default: no limit)"),
+    final_report: bool = typer.Option(False, "--final-report", help="Wait until final report has been sent, not just until tasks complete"),
+    reporter: str = typer.Option("reviewer", "--reporter", help="Preferred reporter agent name for final report extraction"),
+    takeover: bool = typer.Option(False, "--takeover", help="Allow automatic takeover final report if reporter output is missing"),
 ):
-    """Block until all tasks in a team are completed."""
+    """Block until all tasks in a team are completed.
+
+    With --final-report, the command only succeeds after a final report has been
+    sent exactly once to the monitored inbox.
+    """
+    from clawteam.team.finalizer import TeamFinalizer
     from clawteam.team.mailbox import MailboxManager
     from clawteam.team.manager import TeamManager
     from clawteam.team.tasks import TaskStore
@@ -1202,6 +1210,29 @@ def task_wait(
     )
     result = waiter.wait()
 
+    finalize_result = None
+    if result.status == "completed" and final_report:
+        finalizer = TeamFinalizer(team, mailbox=mailbox)
+        finalize_result = finalizer.finalize(
+            to=agent_name,
+            from_agent="finalizer",
+            reporter=reporter,
+            allow_takeover=takeover,
+        )
+        if finalize_result.status == "missing":
+            if _json_output:
+                print(json.dumps({
+                    "event": "final_report",
+                    "status": "missing",
+                    "reporter": reporter,
+                }), flush=True)
+            else:
+                console.print(
+                    f"[yellow]All tasks completed, but final report from '{reporter}' is missing.[/yellow]"
+                    + (" Takeover disabled." if not takeover else "")
+                )
+            raise typer.Exit(1)
+
     if _json_output:
         print(json.dumps({
             "event": "result",
@@ -1214,6 +1245,13 @@ def task_wait(
             "blocked": result.blocked,
             "messages_received": result.messages_received,
             "task_details": result.task_details,
+            "final_report": {
+                "enabled": final_report,
+                "status": finalize_result.status if finalize_result else "disabled",
+                "mode": finalize_result.mode if finalize_result else "",
+                "delivered_to": finalize_result.delivered_to if finalize_result else "",
+                "report_id": finalize_result.report_id if finalize_result else "",
+            },
         }), flush=True)
     else:
         console.print()
@@ -1222,6 +1260,13 @@ def task_wait(
                 f"[green]All {result.total} tasks completed![/green]"
                 f" ({result.elapsed:.1f}s, {result.messages_received} messages)"
             )
+            if final_report and finalize_result:
+                mode_text = finalize_result.mode or "reviewer"
+                status_text = "already sent" if finalize_result.status == "already_sent" else "sent"
+                console.print(
+                    f"[green]Final report {status_text}[/green]"
+                    f" via {mode_text} -> {finalize_result.delivered_to or agent_name}"
+                )
         elif result.status == "timeout":
             console.print(
                 f"[yellow]Timeout[/yellow] after {result.elapsed:.1f}s."
@@ -2183,14 +2228,20 @@ def launch_team(
     workspace: bool = typer.Option(False, "--workspace/--no-workspace", "-w"),
     repo: Optional[str] = typer.Option(None, "--repo", help="Git repo path"),
     command_override: Optional[list[str]] = typer.Option(None, "--command", help="Override agent command"),
+    wait_final_report: bool = typer.Option(False, "--wait-final-report", help="After launch, wait until tasks complete and a final report has been sent"),
+    reporter: str = typer.Option("reviewer", "--reporter", help="Reporter agent name used when waiting for final report"),
+    takeover: bool = typer.Option(True, "--takeover/--no-takeover", help="Allow takeover final report when reporter output is missing"),
 ):
     """Launch a full agent team from a template with one command."""
     import os as _os
 
     from clawteam.spawn import get_backend
     from clawteam.spawn.prompt import build_agent_prompt
+    from clawteam.team.finalizer import TeamFinalizer
+    from clawteam.team.mailbox import MailboxManager
     from clawteam.team.manager import TeamManager
     from clawteam.team.tasks import TaskStore
+    from clawteam.team.waiter import TaskWaiter
     from clawteam.templates import TemplateDef, load_template, render_task
 
     # 1. Load template
@@ -2338,8 +2389,93 @@ def launch_team(
             console.print(f"[bold]Attach:[/bold] tmux attach -t clawteam-{t_name}")
         console.print(f"[bold]Board:[/bold]  clawteam board show {t_name}")
         console.print(f"[bold]Inbox:[/bold]  clawteam inbox peek {t_name} --agent <name>")
+        console.print(
+            f"[bold]Wait final report:[/bold] clawteam task wait {t_name} --final-report --reporter {reporter}"
+            + (" --takeover" if takeover else "")
+        )
 
     _output(out, _human)
+
+    if wait_final_report:
+        mailbox = MailboxManager(t_name)
+        store = TaskStore(t_name)
+
+        leader_inbox = TeamManager.get_leader_inbox(t_name)
+        agent_name = leader_inbox or tmpl.leader.name
+
+        def _on_message(msg):
+            ts = msg.timestamp
+            if ts and "T" in ts:
+                ts = ts.split("T")[1][:8]
+            from_agent = msg.from_agent or "?"
+            content = msg.content or ""
+            if _json_output:
+                print(json.dumps({
+                    "event": "message",
+                    "from": from_agent,
+                    "content": content,
+                    "timestamp": msg.timestamp,
+                }), flush=True)
+            else:
+                console.print(f"  {ts}  message from={from_agent}: {content}")
+
+        def _on_progress(completed, total, in_progress, pending, blocked):
+            if _json_output:
+                print(json.dumps({
+                    "event": "progress",
+                    "completed": completed,
+                    "total": total,
+                    "in_progress": in_progress,
+                    "pending": pending,
+                    "blocked": blocked,
+                }), flush=True)
+            else:
+                console.print(
+                    f"  {completed}/{total} tasks completed"
+                    f"  ({in_progress} in progress, {pending} pending, {blocked} blocked)"
+                )
+
+        if not _json_output:
+            console.print()
+            console.print(f"Waiting for final report in team '[cyan]{t_name}[/cyan]'...")
+
+        waiter = TaskWaiter(
+            team_name=t_name,
+            agent_name=agent_name,
+            mailbox=mailbox,
+            task_store=store,
+            poll_interval=5.0,
+            timeout=None,
+            on_message=_on_message,
+            on_progress=_on_progress,
+            on_agent_dead=None,
+        )
+        result = waiter.wait()
+        if result.status != "completed":
+            raise typer.Exit(1)
+
+        finalizer = TeamFinalizer(t_name, mailbox=mailbox)
+        finalize_result = finalizer.finalize(
+            to=agent_name,
+            from_agent="finalizer",
+            reporter=reporter,
+            allow_takeover=takeover,
+        )
+        if finalize_result.status == "missing":
+            if _json_output:
+                print(json.dumps({
+                    "event": "final_report",
+                    "status": "missing",
+                    "reporter": reporter,
+                }), flush=True)
+            else:
+                console.print(f"[yellow]Tasks completed but final report from '{reporter}' is missing.[/yellow]")
+            raise typer.Exit(1)
+
+        if not _json_output:
+            mode_text = finalize_result.mode or "reviewer"
+            status_text = "already sent" if finalize_result.status == "already_sent" else "sent"
+            console.print(f"[green]Final report {status_text}[/green] via {mode_text} -> {finalize_result.delivered_to or agent_name}")
 
 
 if __name__ == "__main__":
