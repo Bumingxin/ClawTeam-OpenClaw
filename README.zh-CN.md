@@ -89,7 +89,7 @@ clawteam inbox send my-team leader "Auth done. All tests passing."
 可以通过：
 - `clawteam board show` 看任务板
 - `clawteam board attach` 看 tmux 平铺视图
-- `clawteam board serve --port 8080` 看 Web UI
+- `clawteam board serve --port 8090` 看 Web UI
 
 ---
 
