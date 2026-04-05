@@ -31,11 +31,10 @@ class AgentIdentity:
     agent_name: str = "agent"
     user: str = ""
     agent_type: str = "general-purpose"
-    model: str = ""
+    model: str | None = None
     team_name: str | None = None
     is_leader: bool = False
     plan_mode_required: bool = False
-    model: str | None = None
 
     @property
     def in_team(self) -> bool:
@@ -51,15 +50,14 @@ class AgentIdentity:
         return cls(
             agent_id=_env("CLAWTEAM_AGENT_ID", "CLAUDE_CODE_AGENT_ID", uuid.uuid4().hex[:12]),
             agent_name=_env("CLAWTEAM_AGENT_NAME", "CLAUDE_CODE_AGENT_NAME", "agent"),
-            user=user,
             agent_type=_env("CLAWTEAM_AGENT_TYPE", "CLAUDE_CODE_AGENT_TYPE", "general-purpose"),
-            model=_env("CLAWTEAM_MODEL", "CLAUDE_CODE_MODEL", ""),
             team_name=_env("CLAWTEAM_TEAM_NAME", "CLAUDE_CODE_TEAM_NAME") or None,
             is_leader=_env_bool("CLAWTEAM_AGENT_LEADER", "CLAUDE_CODE_AGENT_LEADER"),
             plan_mode_required=_env_bool(
                 "CLAWTEAM_PLAN_MODE_REQUIRED", "CLAUDE_CODE_PLAN_MODE_REQUIRED"
             ),
             model=_env("CLAWTEAM_MODEL", "CLAUDE_CODE_MODEL") or None,
+            user=user,
         )
 
     def to_env(self) -> dict[str, str]:
@@ -77,6 +75,4 @@ class AgentIdentity:
             env["CLAWTEAM_USER"] = self.user
         if self.team_name:
             env["CLAWTEAM_TEAM_NAME"] = self.team_name
-        if self.model:
-            env["CLAWTEAM_MODEL"] = self.model
         return env
